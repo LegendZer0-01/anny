@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Battle Discord Sender</title>
+  <title>Battle Discord Announcement Sender</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -32,6 +32,7 @@
       color: #555;
     }
     input[type="text"],
+    input[type="datetime-local"],
     textarea,
     select {
       width: 100%;
@@ -41,9 +42,12 @@
       font-size: 16px;
       box-sizing: border-box;
     }
-    textarea {
-      min-height: 150px;
-      resize: vertical;
+    .inline-inputs {
+      display: flex;
+      gap: 10px;
+    }
+    .inline-inputs .form-group {
+      flex: 1;
     }
     button {
       background-color: #5865F2;
@@ -59,10 +63,6 @@
     }
     button:hover {
       background-color: #4752C4;
-    }
-    button:disabled {
-      background-color: #99a1b7;
-      cursor: not-allowed;
     }
     .status {
       margin-top: 15px;
@@ -98,18 +98,14 @@
   <div class="container">
     <h1>Battle Discord Announcement Sender</h1>
 
-    <!-- ROOM SELECTOR -->
     <div class="form-group">
       <label>Select Rooms (Teams):</label>
       <div class="checkbox-columns">
         <label><input type="checkbox" class="webhook-checkbox" value="YOUR_WEBHOOK_URL_1"> 🟦 Team Blue Room</label>
         <label><input type="checkbox" class="webhook-checkbox" value="YOUR_WEBHOOK_URL_2"> 🟥 Team Red Room</label>
-        <label><input type="checkbox" class="webhook-checkbox" value="YOUR_WEBHOOK_URL_3"> 🟩 Command Center</label>
-        <label><input type="checkbox" class="webhook-checkbox" value="YOUR_WEBHOOK_URL_4"> 🟨 Alerts</label>
       </div>
     </div>
 
-    <!-- MESSAGE TYPE SELECTOR -->
     <div class="form-group">
       <label for="messageType">Message Type:</label>
       <select id="messageType">
@@ -117,6 +113,27 @@
         <option value="announcement">📢 Announcement</option>
         <option value="emergency">🔥 Emergency</option>
       </select>
+    </div>
+
+    <div class="form-group" id="combat-fields" style="display:none">
+      <div class="inline-inputs">
+        <div class="form-group">
+          <label for="team1">Team 1:</label>
+          <input type="text" id="team1" placeholder="Blue Fleet">
+        </div>
+        <div class="form-group">
+          <label for="team2">Team 2:</label>
+          <input type="text" id="team2" placeholder="Red Armada">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="coords">Battle Coordinates (e.g., C00:00:00):</label>
+        <input type="text" id="coords" placeholder="C00:00:00">
+      </div>
+      <div class="form-group">
+        <label for="battleTime">Expected Time:</label>
+        <input type="datetime-local" id="battleTime">
+      </div>
     </div>
 
     <div class="form-group">
@@ -130,14 +147,10 @@
     </div>
 
     <button id="send-button" onclick="sendWebhook()">Send Announcement</button>
-
     <div id="status" class="status"></div>
-
     <div class="preview">
       <h3>Preview:</h3>
-      <div id="embed-preview">
-        <p>Your announcement preview will appear here.</p>
-      </div>
+      <div id="embed-preview">Your announcement preview will appear here.</div>
     </div>
   </div>
 
@@ -145,132 +158,59 @@
     const typePresets = {
       combat: {
         color: '#ff4d4d',
-        logo: 'atk.png' // Attack
+        logo: 'atk.png'
       },
       announcement: {
         color: '#5865F2',
-        logo: 'alert.png' // Announcement
+        logo: 'alert.png'
       },
       emergency: {
         color: '#faa61a',
-        logo: 'warning.png' // Emergency
+        logo: 'warning.png'
       }
     };
 
     document.getElementById('title').addEventListener('input', updatePreview);
     document.getElementById('content').addEventListener('input', updatePreview);
-    document.getElementById('messageType').addEventListener('change', updatePreview);
+    document.getElementById('messageType').addEventListener('change', () => {
+      const isCombat = document.getElementById('messageType').value === 'combat';
+      document.getElementById('combat-fields').style.display = isCombat ? 'block' : 'none';
+      updatePreview();
+    });
+
+    ['team1', 'team2', 'coords', 'battleTime'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', updatePreview);
+    });
 
     function updatePreview() {
+      const type = document.getElementById('messageType').value;
       const title = document.getElementById('title').value;
       const content = document.getElementById('content').value;
-      const type = document.getElementById('messageType').value;
+      const logo = typePresets[type].logo;
       const color = typePresets[type].color;
-      const logo = typePresets[type].logo;
 
-      const preview = document.getElementById('embed-preview');
+      const team1 = document.getElementById('team1')?.value || '';
+      const team2 = document.getElementById('team2')?.value || '';
+      const coords = document.getElementById('coords')?.value || '';
+      const time = document.getElementById('battleTime')?.value || '';
 
-      if (!title && !content) {
-        preview.innerHTML = '<p>Your announcement preview will appear here.</p>';
-        return;
+      const embedTitle = (type === 'combat' && (team1 || team2)) ? `${team1} vs ${team2}` : title;
+      let embedDesc = content;
+
+      if (type === 'combat') {
+        if (coords) embedDesc += `\n**Coordinates:** [${coords}](https://bolt.astroempires.com/map.aspx?loc=${encodeURIComponent(coords)})`;
+        if (time) embedDesc += `\n**Expected Time:** ${new Date(time).toLocaleString()}`;
       }
 
-      preview.innerHTML = `
-        <div style="
-          display: flex;
-          border-left: 5px solid ${color};
-          background-color: #2f3136;
-          padding: 16px;
-          border-radius: 4px;
-          color: white;
-        ">
-          <div style="flex: 1;">
-            <div style="margin-bottom: 10px;">
-              <img src="${logo}" alt="Logo" style="max-height: 80px; border-radius: 4px;">
-            </div>
-            ${title ? `<div style="font-weight: 600; font-size: 16px; margin-bottom: 6px;">${title}</div>` : ''}
-            ${content ? `<div style="font-size: 14px; line-height: 1.4; white-space: pre-line;">${content}</div>` : ''}
-            <div style="font-size: 12px; margin-top: 12px; color: #b9bbbe;">${new Date().toLocaleString()}</div>
-          </div>
-        </div>
-      `;
-    }
+      const previewHTML = `
+        <div style="border-left: 5px solid ${color}; padding: 16px; background-color: #2f3136; border-radius: 4px;">
+          <img src="${logo}" alt="logo" style="max-height: 60px; margin-bottom: 10px;">
+          <div style="font-weight: bold; font-size: 18px; margin-bottom: 8px;">${embedTitle || 'No title'}</div>
+          <div style="white-space: pre-line;">${embedDesc || 'No content'}</div>
+          <div style="font-size: 12px; margin-top: 12px; color: #b9bbbe;">${new Date().toLocaleString()}</div>
+        </div>`;
 
-    async function sendWebhook() {
-      const checkboxes = document.querySelectorAll('.webhook-checkbox:checked');
-      const title = document.getElementById('title').value;
-      const content = document.getElementById('content').value;
-      const type = document.getElementById('messageType').value;
-      const logo = typePresets[type].logo;
-      const colorHex = typePresets[type].color;
-      const colorInt = parseInt(colorHex.replace('#', ''), 16);
-
-      const statusElement = document.getElementById('status');
-      statusElement.style.display = 'none';
-
-      if (checkboxes.length === 0) {
-        showStatus('Please select at least one room.', 'error');
-        return;
-      }
-
-      if (!title && !content) {
-        showStatus('Please enter at least a title or content.', 'error');
-        return;
-      }
-
-      const button = document.getElementById('send-button');
-      button.disabled = true;
-      button.textContent = 'Sending...';
-
-      const embed = {
-        title: title || null,
-        description: content || null,
-        color: colorInt,
-        thumbnail: { url: logo },
-        timestamp: new Date().toISOString()
-      };
-
-      Object.keys(embed).forEach(key => {
-        if (embed[key] === null) delete embed[key];
-      });
-
-      let success = 0, failed = 0;
-
-      for (const cb of checkboxes) {
-        try {
-          const response = await fetch(cb.value, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ embeds: [embed] })
-          });
-          response.ok ? success++ : failed++;
-        } catch {
-          failed++;
-        }
-      }
-
-      if (success > 0 && failed === 0)
-        showStatus(`✅ Sent to ${success} room(s)!`, 'success');
-      else if (success > 0)
-        showStatus(`⚠️ Sent to ${success}, but ${failed} failed.`, 'error');
-      else
-        showStatus(`❌ All webhook requests failed.`, 'error');
-
-      button.disabled = false;
-      button.textContent = 'Send Announcement';
-
-      if (success > 0) {
-        document.getElementById('title').value = '';
-        document.getElementById('content').value = '';
-        updatePreview();
-      }
-    }
-
-    function showStatus(msg, type) {
-      const el = document.getElementById('status');
-      el.textContent = msg;
-      el.className = `status ${type}`;
-      el.style.display = 'block';
+      document.getElementById('embed-preview').innerHTML = previewHTML;
     }
 
     updatePreview();
