@@ -32,7 +32,8 @@
       color: #555;
     }
     input[type="text"],
-    input[type="datetime-local"],
+    input[type="date"],
+    input[type="time"],
     textarea,
     select {
       width: 100%;
@@ -139,12 +140,16 @@
         </div>
       </div>
       <div class="form-group">
-        <label for="coords">Battle Coordinates (e.g., B00:00:00:00):</label>
-        <input type="text" id="coords" placeholder="B00:00:00:00">
+        <label for="coords">Battle Coordinates (e.g., C00:00:00):</label>
+        <input type="text" id="coords" placeholder="C00:00:00">
+      </div>
+      <div class="form-group">
+        <label for="battleDate">Expected Date:</label>
+        <input type="date" id="battleDate">
       </div>
       <div class="form-group">
         <label for="battleTime">Expected Time:</label>
-        <input type="datetime-local" id="battleTime">
+        <input type="time" id="battleTime" step="1">
       </div>
     </div>
 
@@ -199,7 +204,7 @@
       updatePreview();
     });
 
-    ['title', 'content', 'team1', 'team2', 'coords', 'battleTime'].forEach(id => {
+    ['title', 'content', 'team1', 'team2', 'coords', 'battleDate', 'battleTime'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('input', updatePreview);
     });
@@ -215,14 +220,18 @@
       const team1 = document.getElementById('team1')?.value || '';
       const team2 = document.getElementById('team2')?.value || '';
       const coords = document.getElementById('coords')?.value || '';
+      const date = document.getElementById('battleDate')?.value || '';
       const time = document.getElementById('battleTime')?.value || '';
 
-      const embedTitle = (type === 'combat' && (team1 || team2)) ? `${team1} vs ${team2}` : title;
+      const embedTitle = (type === 'combat' && (team1 || team2)) ? `Battle Announced: ${team1} vs ${team2}` : title;
       let embedDesc = content || '';
 
       if (type === 'combat') {
         if (coords) embedDesc += `\n**Coordinates:** [${coords}](https://bolt.astroempires.com/map.aspx?loc=${encodeURIComponent(coords)})`;
-        if (time) embedDesc += `\n**Expected Time:** ${new Date(time).toLocaleString()}`;
+        if (date && time) {
+          const timeString = `${date} ${time}`;
+          embedDesc += `\n**Expected Time:** ${timeString}`;
+        }
       }
 
       const formattedDesc = formatDiscordMarkdown(embedDesc);
