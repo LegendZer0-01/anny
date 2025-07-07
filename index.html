@@ -64,6 +64,10 @@
     button:hover {
       background-color: #4752C4;
     }
+    button:disabled {
+      background-color: #aab0d0;
+      cursor: not-allowed;
+    }
     .status {
       margin-top: 15px;
       padding: 10px;
@@ -92,6 +96,13 @@
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 10px;
     }
+    a {
+      color: #00aff4;
+      text-decoration: none;
+    }
+    strong {
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -107,8 +118,9 @@
     </div>
 
     <div class="form-group">
-      <label for="messageType">Message Type:</label>
+      <label for="messageType">Post Type:</label>
       <select id="messageType">
+        <option value="" disabled selected>-- Select a Post Type --</option>
         <option value="combat">⚔️ Combat</option>
         <option value="announcement">📢 Announcement</option>
         <option value="emergency">🔥 Emergency</option>
@@ -127,8 +139,8 @@
         </div>
       </div>
       <div class="form-group">
-        <label for="coords">Battle Coordinates (e.g., C00:00:00):</label>
-        <input type="text" id="coords" placeholder="C00:00:00">
+        <label for="coords">Battle Coordinates (e.g., B00:00:00:00):</label>
+        <input type="text" id="coords" placeholder="B00:00:00:00">
       </div>
       <div class="form-group">
         <label for="battleTime">Expected Time:</label>
@@ -146,7 +158,7 @@
       <textarea id="content" placeholder="Enter your announcement content here..."></textarea>
     </div>
 
-    <button id="send-button" onclick="sendWebhook()">Send Announcement</button>
+    <button id="send-button" onclick="sendWebhook()" disabled>Send Announcement</button>
     <div id="status" class="status"></div>
     <div class="preview">
       <h3>Preview:</h3>
@@ -170,20 +182,31 @@
       }
     };
 
-    document.getElementById('title').addEventListener('input', updatePreview);
-    document.getElementById('content').addEventListener('input', updatePreview);
-    document.getElementById('messageType').addEventListener('change', () => {
-      const isCombat = document.getElementById('messageType').value === 'combat';
+    function formatDiscordMarkdown(text) {
+      return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
+    }
+
+    const messageTypeEl = document.getElementById('messageType');
+    const sendButton = document.getElementById('send-button');
+
+    messageTypeEl.addEventListener('change', () => {
+      const selected = messageTypeEl.value;
+      const isCombat = selected === 'combat';
       document.getElementById('combat-fields').style.display = isCombat ? 'block' : 'none';
+      sendButton.disabled = !selected;
       updatePreview();
     });
 
-    ['team1', 'team2', 'coords', 'battleTime'].forEach(id => {
-      document.getElementById(id)?.addEventListener('input', updatePreview);
+    ['title', 'content', 'team1', 'team2', 'coords', 'battleTime'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', updatePreview);
     });
 
     function updatePreview() {
-      const type = document.getElementById('messageType').value;
+      const type = messageTypeEl.value;
+      if (!type) return;
       const title = document.getElementById('title').value;
       const content = document.getElementById('content').value;
       const logo = typePresets[type].logo;
@@ -195,18 +218,20 @@
       const time = document.getElementById('battleTime')?.value || '';
 
       const embedTitle = (type === 'combat' && (team1 || team2)) ? `${team1} vs ${team2}` : title;
-      let embedDesc = content;
+      let embedDesc = content || '';
 
       if (type === 'combat') {
         if (coords) embedDesc += `\n**Coordinates:** [${coords}](https://bolt.astroempires.com/map.aspx?loc=${encodeURIComponent(coords)})`;
         if (time) embedDesc += `\n**Expected Time:** ${new Date(time).toLocaleString()}`;
       }
 
+      const formattedDesc = formatDiscordMarkdown(embedDesc);
+
       const previewHTML = `
         <div style="border-left: 5px solid ${color}; padding: 16px; background-color: #2f3136; border-radius: 4px;">
           <img src="${logo}" alt="logo" style="max-height: 60px; margin-bottom: 10px;">
           <div style="font-weight: bold; font-size: 18px; margin-bottom: 8px;">${embedTitle || 'No title'}</div>
-          <div style="white-space: pre-line;">${embedDesc || 'No content'}</div>
+          <div style="white-space: pre-line;">${formattedDesc || 'No content'}</div>
           <div style="font-size: 12px; margin-top: 12px; color: #b9bbbe;">${new Date().toLocaleString()}</div>
         </div>`;
 
