@@ -31,7 +31,9 @@
       font-weight: 600;
       color: #555;
     }
-    select, input, textarea {
+    input[type="text"],
+    input[type="color"],
+    textarea {
       width: 100%;
       padding: 10px;
       border: 1px solid #ddd;
@@ -94,6 +96,11 @@
       height: auto;
       margin-bottom: 10px;
     }
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
   </style>
 </head>
 <body>
@@ -101,14 +108,13 @@
     <h1>Discord Announcement Sender</h1>
 
     <div class="form-group">
-      <label for="webhook-select">Select Channel/Webhook:</label>
-      <select id="webhook-select">
-        <option value="">-- Select a webhook --</option>
-        <option value="YOUR_WEBHOOK_URL_1">General Announcements</option>
-        <option value="YOUR_WEBHOOK_URL_2">Updates</option>
-        <option value="YOUR_WEBHOOK_URL_3">Important Notices</option>
-        <!-- Replace with your actual webhook URLs -->
-      </select>
+      <label>Select Channels/Webhooks:</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" class="webhook-checkbox" value="YOUR_WEBHOOK_URL_1"> General Announcements</label>
+        <label><input type="checkbox" class="webhook-checkbox" value="YOUR_WEBHOOK_URL_2"> Updates</label>
+        <label><input type="checkbox" class="webhook-checkbox" value="YOUR_WEBHOOK_URL_3"> Important Notices</label>
+        <!-- Add more checkboxes with real webhook URLs as needed -->
+      </div>
     </div>
 
     <div class="form-group">
@@ -139,7 +145,7 @@
   </div>
 
   <script>
-    const ANNOUNCEMENT_LOGO = "https://example.com/your-logo.png"; // Replace with your actual image
+    const ANNOUNCEMENT_LOGO = "https://example.com/your-logo.png"; // Replace with your own
 
     document.getElementById('title').addEventListener('input', updatePreview);
     document.getElementById('content').addEventListener('input', updatePreview);
@@ -179,7 +185,7 @@
     }
 
     async function sendWebhook() {
-      const webhookUrl = document.getElementById('webhook-select').value;
+      const checkboxes = document.querySelectorAll('.webhook-checkbox:checked');
       const title = document.getElementById('title').value;
       const content = document.getElementById('content').value;
       const colorHex = document.getElementById('color').value;
@@ -188,8 +194,8 @@
       const statusElement = document.getElementById('status');
       statusElement.style.display = 'none';
 
-      if (!webhookUrl) {
-        showStatus('Please select a webhook', 'error');
+      if (checkboxes.length === 0) {
+        showStatus('Please select at least one webhook', 'error');
         return;
       }
 
@@ -202,44 +208,56 @@
       button.disabled = true;
       button.textContent = 'Sending...';
 
-      try {
-        const embed = {
-          title: title || null,
-          description: content || null,
-          color: colorInt,
-          thumbnail: {
-            url: ANNOUNCEMENT_LOGO
-          },
-          timestamp: new Date().toISOString()
-        };
+      const embed = {
+        title: title || null,
+        description: content || null,
+        color: colorInt,
+        thumbnail: { url: ANNOUNCEMENT_LOGO },
+        timestamp: new Date().toISOString()
+      };
 
-        Object.keys(embed).forEach(key => {
-          if (embed[key] === null) {
-            delete embed[key];
-          }
-        });
-
-        const response = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ embeds: [embed] })
-        });
-
-        if (response.ok) {
-          showStatus('Announcement sent successfully!', 'success');
-          document.getElementById('title').value = '';
-          document.getElementById('content').value = '';
-          updatePreview();
-        } else {
-          const errorData = await response.text();
-          showStatus(`Error sending announcement: ${errorData}`, 'error');
+      Object.keys(embed).forEach(key => {
+        if (embed[key] === null) {
+          delete embed[key];
         }
-      } catch (error) {
-        showStatus(`Error: ${error.message}`, 'error');
-      } finally {
-        button.disabled = false;
-        button.textContent = 'Send Announcement';
+      });
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const cb of checkboxes) {
+        try {
+          const response = await fetch(cb.value, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ embeds: [embed] })
+          });
+
+          if (response.ok) {
+            successCount++;
+          } else {
+            errorCount++;
+            console.error(`Error for ${cb.value}: ${await response.text()}`);
+          }
+        } catch (err) {
+          errorCount++;
+          console.error(`Exception for ${cb.value}: ${err.message}`);
+        }
       }
+
+      if (successCount > 0 && errorCount === 0) {
+        showStatus(`Sent successfully to ${successCount} webhook(s)!`, 'success');
+        document.getElementById('title').value = '';
+        document.getElementById('content').value = '';
+        updatePreview();
+      } else if (successCount > 0 && errorCount > 0) {
+        showStatus(`Partial success: ${successCount} sent, ${errorCount} failed.`, 'error');
+      } else {
+        showStatus(`All webhook requests failed.`, 'error');
+      }
+
+      button.disabled = false;
+      button.textContent = 'Send Announcement';
     }
 
     function showStatus(message, type) {
