@@ -32,7 +32,6 @@
       color: #555;
     }
     input[type="text"],
-    input[type="color"],
     textarea,
     select {
       width: 100%;
@@ -130,11 +129,6 @@
       <textarea id="content" placeholder="Enter your announcement content here..."></textarea>
     </div>
 
-    <div class="form-group">
-      <label for="color">Embed Color:</label>
-      <input type="color" id="color" value="#5865F2">
-    </div>
-
     <button id="send-button" onclick="sendWebhook()">Send Announcement</button>
 
     <div id="status" class="status"></div>
@@ -165,18 +159,13 @@
 
     document.getElementById('title').addEventListener('input', updatePreview);
     document.getElementById('content').addEventListener('input', updatePreview);
-    document.getElementById('color').addEventListener('input', updatePreview);
-    document.getElementById('messageType').addEventListener('change', () => {
-      const type = document.getElementById('messageType').value;
-      document.getElementById('color').value = typePresets[type].color;
-      updatePreview();
-    });
+    document.getElementById('messageType').addEventListener('change', updatePreview);
 
     function updatePreview() {
       const title = document.getElementById('title').value;
       const content = document.getElementById('content').value;
-      const color = document.getElementById('color').value;
       const type = document.getElementById('messageType').value;
+      const color = typePresets[type].color;
       const logo = typePresets[type].logo;
 
       const preview = document.getElementById('embed-preview');
@@ -211,9 +200,9 @@
       const checkboxes = document.querySelectorAll('.webhook-checkbox:checked');
       const title = document.getElementById('title').value;
       const content = document.getElementById('content').value;
-      const colorHex = document.getElementById('color').value;
       const type = document.getElementById('messageType').value;
       const logo = typePresets[type].logo;
+      const colorHex = typePresets[type].color;
       const colorInt = parseInt(colorHex.replace('#', ''), 16);
 
       const statusElement = document.getElementById('status');
