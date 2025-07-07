@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Discord Announcement Sender</title>
+  <title>Battle Discord Sender</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 800px;
+      max-width: 1000px;
       margin: 0 auto;
       padding: 20px;
       background-color: #f5f5f5;
@@ -33,7 +33,8 @@
     }
     input[type="text"],
     input[type="color"],
-    textarea {
+    textarea,
+    select {
       width: 100%;
       padding: 10px;
       border: 1px solid #ddd;
@@ -84,46 +85,49 @@
       border: 1px solid #ddd;
       padding: 15px;
       border-radius: 4px;
-      background-color: #7b7484;
+      background-color: #36393f;
       color: white;
     }
-    .preview h3 {
-      margin-top: 0;
-      color: white;
-    }
-    .preview img {
-      max-width: 100%;
-      height: auto;
-      margin-bottom: 10px;
-    }
-    .checkbox-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    .checkbox-columns {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Discord Announcement Sender</h1>
+    <h1>Battle Discord Announcement Sender</h1>
 
+    <!-- ROOM SELECTOR -->
     <div class="form-group">
-      <label>Select Channels/Webhooks:</label>
-      <div class="checkbox-group">
-        <label><input type="checkbox" class="webhook-checkbox" value="YOUR_WEBHOOK_URL_1"> General Announcements</label>
-        <label><input type="checkbox" class="webhook-checkbox" value="YOUR_WEBHOOK_URL_2"> Updates</label>
-        <label><input type="checkbox" class="webhook-checkbox" value="YOUR_WEBHOOK_URL_3"> Important Notices</label>
-        <!-- Add more checkboxes with real webhook URLs as needed -->
+      <label>Select Rooms (Teams):</label>
+      <div class="checkbox-columns">
+        <label><input type="checkbox" class="webhook-checkbox" value="YOUR_WEBHOOK_URL_1"> 🟦 Team Blue Room</label>
+        <label><input type="checkbox" class="webhook-checkbox" value="YOUR_WEBHOOK_URL_2"> 🟥 Team Red Room</label>
+        <label><input type="checkbox" class="webhook-checkbox" value="YOUR_WEBHOOK_URL_3"> 🟩 Command Center</label>
+        <label><input type="checkbox" class="webhook-checkbox" value="YOUR_WEBHOOK_URL_4"> 🟨 Alerts</label>
       </div>
     </div>
 
+    <!-- LOGO SELECTOR -->
     <div class="form-group">
-      <label for="title">Announcement Title:</label>
+      <label for="logo">Message Type (Logo):</label>
+      <select id="logo">
+        <option value="https://i.imgur.com/1TQpNxu.png">⚔️ Attack</option>
+        <option value="https://i.imgur.com/dZ8Z5zL.png">📢 Announcement</option>
+        <option value="https://i.imgur.com/wJ4DfzT.png">🛡️ Defense</option>
+        <option value="https://i.imgur.com/KQzRfV3.png">🔥 Emergency</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="title">Title:</label>
       <input type="text" id="title" placeholder="Enter announcement title">
     </div>
 
     <div class="form-group">
-      <label for="content">Announcement Content:</label>
+      <label for="content">Message:</label>
       <textarea id="content" placeholder="Enter your announcement content here..."></textarea>
     </div>
 
@@ -145,16 +149,16 @@
   </div>
 
   <script>
-    const ANNOUNCEMENT_LOGO = "https://example.com/your-logo.png"; // Replace with your own
-
     document.getElementById('title').addEventListener('input', updatePreview);
     document.getElementById('content').addEventListener('input', updatePreview);
     document.getElementById('color').addEventListener('input', updatePreview);
+    document.getElementById('logo').addEventListener('change', updatePreview);
 
     function updatePreview() {
       const title = document.getElementById('title').value;
       const content = document.getElementById('content').value;
       const color = document.getElementById('color').value;
+      const logo = document.getElementById('logo').value;
 
       const preview = document.getElementById('embed-preview');
 
@@ -174,7 +178,7 @@
         ">
           <div style="flex: 1;">
             <div style="margin-bottom: 10px;">
-              <img src="${ANNOUNCEMENT_LOGO}" alt="Logo" style="max-height: 80px; border-radius: 4px;">
+              <img src="${logo}" alt="Logo" style="max-height: 80px; border-radius: 4px;">
             </div>
             ${title ? `<div style="font-weight: 600; font-size: 16px; margin-bottom: 6px;">${title}</div>` : ''}
             ${content ? `<div style="font-size: 14px; line-height: 1.4; white-space: pre-line;">${content}</div>` : ''}
@@ -189,18 +193,19 @@
       const title = document.getElementById('title').value;
       const content = document.getElementById('content').value;
       const colorHex = document.getElementById('color').value;
+      const logo = document.getElementById('logo').value;
       const colorInt = parseInt(colorHex.replace('#', ''), 16);
 
       const statusElement = document.getElementById('status');
       statusElement.style.display = 'none';
 
       if (checkboxes.length === 0) {
-        showStatus('Please select at least one webhook', 'error');
+        showStatus('Please select at least one room.', 'error');
         return;
       }
 
       if (!title && !content) {
-        showStatus('Please enter at least a title or content', 'error');
+        showStatus('Please enter at least a title or content.', 'error');
         return;
       }
 
@@ -212,7 +217,7 @@
         title: title || null,
         description: content || null,
         color: colorInt,
-        thumbnail: { url: ANNOUNCEMENT_LOGO },
+        thumbnail: { url: logo },
         timestamp: new Date().toISOString()
       };
 
@@ -246,14 +251,14 @@
       }
 
       if (successCount > 0 && errorCount === 0) {
-        showStatus(`Sent successfully to ${successCount} webhook(s)!`, 'success');
+        showStatus(`✅ Sent to ${successCount} room(s)!`, 'success');
         document.getElementById('title').value = '';
         document.getElementById('content').value = '';
         updatePreview();
-      } else if (successCount > 0 && errorCount > 0) {
-        showStatus(`Partial success: ${successCount} sent, ${errorCount} failed.`, 'error');
+      } else if (successCount > 0) {
+        showStatus(`⚠️ Sent to ${successCount}, but ${errorCount} failed.`, 'error');
       } else {
-        showStatus(`All webhook requests failed.`, 'error');
+        showStatus(`❌ All webhook requests failed.`, 'error');
       }
 
       button.disabled = false;
@@ -266,6 +271,9 @@
       statusElement.className = `status ${type}`;
       statusElement.style.display = 'block';
     }
+
+    // Show preview on load
+    updatePreview();
   </script>
 </body>
 </html>
