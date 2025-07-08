@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>[122] Discord Combat Message Form - Icon Rooms</title>
+  <title>[123] Discord Combat Message Form - Icon Rooms</title>
   <style>
     :root {
       --bg: #2c2f33;
@@ -74,8 +74,6 @@
       cursor: not-allowed;
     }
 
-    /* --- New styles for icon room selection --- */
-
     .room-selection {
       display: flex;
       gap: 20px;
@@ -84,44 +82,44 @@
 
     .room-option {
       position: relative;
-      height: 50px;
       cursor: pointer;
       border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 0 5px transparent;
       transition: box-shadow 0.3s ease;
       user-select: none;
     }
 
-    /* Hidden checkbox */
     .room-option input[type="checkbox"] {
       display: none;
     }
 
-    /* The frog icon */
-    .room-option img {
+    .room-option .icon-wrapper {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+    }
+
+    .room-option .icon-wrapper img {
       width: 100%;
       height: 100%;
       display: block;
       object-fit: contain;
       border-radius: 8px;
-      transition: transform 0.3s ease;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    /* Glow effect when checked */
-    .room-option input[type="checkbox"]:checked + img {
-      box-shadow: 0 0 5px 2px var(--glow-color);
+    .room-option input[type="checkbox"]:checked + .icon-wrapper img {
+      box-shadow: 0 0 8px 3px var(--glow-color);
       transform: scale(1.05);
-      border-radius: 8px;
     }
 
-    /* Overlay container for hover effect */
     .room-option .overlay {
       position: absolute;
       top: 0; left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0); /* default transparent */
+      background: rgba(0,0,0,0.6);
       color: white;
       font-weight: bold;
       font-size: 10px;
@@ -130,17 +128,48 @@
       align-items: center;
       border-radius: 8px;
       opacity: 0;
-      pointer-events: none;
-      transition: background 0.3s ease, opacity 0.3s ease;
+      transition: opacity 0.3s ease;
+      pointer-events: none; /* <-- Important: allows click to pass through */
     }
 
-    /* Show overlay on hover */
-    .room-option:hover .overlay {
-      background: rgba(0,0,0,0.6);
+    .room-option .icon-wrapper:hover .overlay {
       opacity: 1;
-      pointer-events: auto;
     }
 
+    .status {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 5px;
+      display: none;
+      text-align: center;
+    }
+
+    .success {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .error {
+      background: var(--error);
+      color: #fff;
+    }
+
+    .preview {
+      margin-top: 30px;
+    }
+
+    .preview h3 {
+      margin-bottom: 10px;
+    }
+
+    #embed-preview a {
+      color: #00aff4;
+      text-decoration: none;
+    }
+
+    #embed-preview a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -162,53 +191,34 @@
       <div class="room-selection">
         <label class="room-option" title="Team Blue Room">
           <input type="checkbox" class="webhook-checkbox" value="https://discord.com/api/webhooks/1391917093099798690/gX04dswYaOxRApqAp8QAyvvCiaVv2LX9Yt7FZFkD0e4WIYwNjS_07C19SZ7MoyS80Y9y" />
-          <img src="https://legendzer0-01.github.io/anny/frog.png" alt="Team Blue Room" />
-          <div class="overlay">[FROG]</div>
+          <div class="icon-wrapper">
+            <img src="https://legendzer0-01.github.io/anny/frog.png" alt="Team Blue Room" />
+            <div class="overlay">[FROG]</div>
+          </div>
         </label>
 
         <label class="room-option" title="Team Red Room">
           <input type="checkbox" class="webhook-checkbox" value="https://discord.com/api/webhooks/1391917266953830420/Q3K8Ibt-3CB4XXGE-MP5xDaHVyPxuBp87RNf8pLGs7YYRmuLCaMW5Qd_Hg7O_ovgoq4l" />
-          <img src="https://legendzer0-01.github.io/anny/wolf.png" alt="Team Red Room" />
-          <div class="overlay">[HOWL]</div>
+          <div class="icon-wrapper">
+            <img src="https://legendzer0-01.github.io/anny/frog.png" alt="Team Red Room" />
+            <div class="overlay">[HOWL]</div>
+          </div>
         </label>
       </div>
     </div>
 
     <div id="combat-fields" style="display:none;">
-      <div class="form-group">
-        <label>Team 1:</label>
-        <input type="text" id="team1">
-      </div>
-      <div class="form-group">
-        <label>Team 2:</label>
-        <input type="text" id="team2">
-      </div>
-      <div class="form-group">
-        <label>Coordinates:</label>
-        <input type="text" id="coords" placeholder="E18:52:1">
-      </div>
-      <div class="form-group">
-        <label>Date:</label>
-        <input type="date" id="battleDate">
-      </div>
-      <div class="form-group">
-        <label>Time (24h with seconds):</label>
-        <input type="time" id="battleTime" step="1">
-      </div>
+      <div class="form-group"><label>Team 1:</label><input type="text" id="team1"></div>
+      <div class="form-group"><label>Team 2:</label><input type="text" id="team2"></div>
+      <div class="form-group"><label>Coordinates:</label><input type="text" id="coords" placeholder="E18:52:1"></div>
+      <div class="form-group"><label>Date:</label><input type="date" id="battleDate"></div>
+      <div class="form-group"><label>Time (24h with seconds):</label><input type="time" id="battleTime" step="1"></div>
     </div>
 
-    <div class="form-group">
-      <label>Title:</label>
-      <input type="text" id="title">
-    </div>
-
-    <div class="form-group">
-      <label>Content:</label>
-      <textarea id="content" rows="4"></textarea>
-    </div>
+    <div class="form-group"><label>Title:</label><input type="text" id="title"></div>
+    <div class="form-group"><label>Content:</label><textarea id="content" rows="4"></textarea></div>
 
     <button id="send-button" onclick="sendWebhook()" disabled>Send Announcement</button>
-
     <div id="status" class="status"></div>
 
     <div class="preview">
@@ -244,7 +254,6 @@
     }
 
     document.querySelectorAll('input, textarea, select').forEach(el => el.addEventListener('input', updatePreview));
-    // Also listen for checkbox changes on rooms
     document.querySelectorAll('.webhook-checkbox').forEach(cb => cb.addEventListener('change', updatePreview));
 
     function updatePreview() {
