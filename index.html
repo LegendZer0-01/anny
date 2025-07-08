@@ -242,7 +242,6 @@
           <img src="${logo}" style="height: 50px; float: right;">
           <h4>${type === 'combat' ? `${team1} vs ${team2}` : title}</h4>
           <p>${desc}</p>
-          <small>${new Date().toLocaleString()}</small>
         </div>
       `;
 
@@ -281,7 +280,6 @@
         description,
         color,
         thumbnail: { url: logo },
-        timestamp: new Date().toISOString()
       };
 
       try {
