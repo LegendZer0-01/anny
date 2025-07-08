@@ -1,31 +1,213 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>Embed Webhook Debug</title></head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Discord Combat Message Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    button {
+      background: #5865F2;
+      color: white;
+      border: none;
+      padding: 12px;
+      font-size: 16px;
+      width: 100%;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .checkbox-columns label {
+      display: inline-block;
+      margin-right: 15px;
+    }
+
+    .status {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 5px;
+      display: none;
+      text-align: center;
+    }
+
+    .success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
 <body>
-  <button onclick="sendWebhook()">Send Embed</button>
+  <div class="container">
+    <h2>Discord Battle Announcement</h2>
+
+    <div class="form-group">
+      <label>Post Type:</label>
+      <select id="messageType" onchange="handleTypeChange()">
+        <option value="">-- Select Message Type --</option>
+        <option value="combat">Combat</option>
+        <option value="announcement">Announcement</option>
+        <option value="emergency">Emergency</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Select Rooms (Teams):</label>
+      <div class="checkbox-columns">
+        <label><input type="checkbox" class="webhook-checkbox" value="https://discord.com/api/webhooks/1391917093099798690/gX04dswYaOxRApqAp8QAyvvCiaVv2LX9Yt7FZFkD0e4WIYwNjS_07C19SZ7MoyS80Y9y"> 🟦 Team Blue Room</label>
+        <label><input type="checkbox" class="webhook-checkbox" value="https://discord.com/api/webhooks/1391917266953830420/Q3K8Ibt-3CB4XXGE-MP5xDaHVyPxuBp87RNf8pLGs7YYRmuLCaMW5Qd_Hg7O_ovgoq4l"> 🟥 Team Red Room</label>
+      </div>
+    </div>
+
+    <div id="combat-fields" style="display:none;">
+      <div class="form-group">
+        <label>Team 1:</label>
+        <input type="text" id="team1">
+      </div>
+      <div class="form-group">
+        <label>Team 2:</label>
+        <input type="text" id="team2">
+      </div>
+      <div class="form-group">
+        <label>Coordinates:</label>
+        <input type="text" id="coords" placeholder="E18:52:1">
+      </div>
+      <div class="form-group">
+        <label>Date:</label>
+        <input type="date" id="battleDate">
+      </div>
+      <div class="form-group">
+        <label>Time (24h with seconds):</label>
+        <input type="time" id="battleTime" step="1">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Title:</label>
+      <input type="text" id="title">
+    </div>
+
+    <div class="form-group">
+      <label>Content:</label>
+      <textarea id="content" rows="4"></textarea>
+    </div>
+
+    <button id="send-button" onclick="sendWebhook()" disabled>Send Announcement</button>
+
+    <div id="status" class="status"></div>
+  </div>
 
   <script>
+    const typePresets = {
+      combat: {
+        color: '#ff4d4d',
+        logo: 'https://cdn-icons-png.flaticon.com/512/10890/10890335.png'
+      },
+      announcement: {
+        color: '#5865F2',
+        logo: 'https://cdn-icons-png.flaticon.com/512/10464/10464718.png'
+      },
+      emergency: {
+        color: '#faa61a',
+        logo: 'https://cdn-icons-png.flaticon.com/512/2014/2014825.png'
+      }
+    };
+
+    function handleTypeChange() {
+      const type = document.getElementById('messageType').value;
+      document.getElementById('send-button').disabled = !type;
+      document.getElementById('combat-fields').style.display = (type === 'combat') ? 'block' : 'none';
+    }
+
     async function sendWebhook() {
-      const webhooks = [
-        "https://discord.com/api/webhooks/1391917093099798690/gX04dswYaOxRApqAp8QAyvvCiaVv2LX9Yt7FZFkD0e4WIYwNjS_07C19SZ7MoyS80Y9y",
-        "https://discord.com/api/webhooks/1391917266953830420/Q3K8Ibt-3CB4XXGE-MP5xDaHVyPxuBp87RNf8pLGs7YYRmuLCaMW5Qd_Hg7O_ovgoq4l"
-      ];
+      const type = document.getElementById('messageType').value;
+      if (!type) return;
+
+      const selectedWebhooks = [...document.querySelectorAll('.webhook-checkbox:checked')].map(cb => cb.value);
+      if (selectedWebhooks.length === 0) {
+        showStatus("Please select at least one room.", "error");
+        return;
+      }
+
+      const team1 = document.getElementById('team1')?.value || '';
+      const team2 = document.getElementById('team2')?.value || '';
+      const coords = document.getElementById('coords')?.value || '';
+      const date = document.getElementById('battleDate')?.value || '';
+      const time = document.getElementById('battleTime')?.value || '';
+      const title = document.getElementById('title')?.value || '';
+      const content = document.getElementById('content')?.value || '';
+
+      const color = parseInt(typePresets[type].color.replace("#", ""), 16);
+      const logo = typePresets[type].logo;
+
+      let description = content || "(no content)";
+      if (type === 'combat') {
+        if (coords) description += `\n**Coordinates:** [${coords}](https://bolt.astroempires.com/map.aspx?loc=${encodeURIComponent(coords)})`;
+        if (date && time) description += `\n**Expected Time:** ${date} ${time}`;
+      }
 
       const embed = {
-        title: "Blue vs Red",
-        description: "**Coordinates:** [E18:52:1](https://astroempires.com/map.aspx?loc=E18:52:1)\n**Expected Time:** 2025-07-07 20:00:00",
-        color: 0xff4d4d,
-        thumbnail: {
-          url: "https://cdn-icons-png.flaticon.com/512/10890/10890335.png"
-        },
+        title: (type === 'combat' && (team1 || team2)) ? `${team1} vs ${team2}` : title,
+        description,
+        color,
+        thumbnail: { url: logo },
         timestamp: new Date().toISOString()
       };
 
-      for (const url of webhooks) {
-        try {
-          const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+      try {
+        const sendButton = document.getElementById('send-button');
+        sendButton.disabled = true;
+        sendButton.textContent = "Sending...";
+
+        for (const webhookUrl of selectedWebhooks) {
+          const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               content: " ",
               embeds: [embed]
@@ -33,14 +215,36 @@
           });
 
           const result = await response.text();
-          console.log(`Sent to: ${url}`);
-          console.log(`Status: ${response.status}`);
-          console.log(result);
-
-        } catch (error) {
-          console.error("Failed to send to", url, error);
+          console.log(`Webhook to ${webhookUrl} status:`, response.status);
+          console.log(`Response:`, result);
         }
+
+        showStatus("Message sent successfully!", "success");
+
+        // Reset
+        ['team1','team2','coords','battleDate','battleTime','title','content'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        document.getElementById('messageType').value = '';
+        document.getElementById('combat-fields').style.display = 'none';
+        document.querySelectorAll('.webhook-checkbox').forEach(cb => cb.checked = false);
+        document.getElementById('send-button').disabled = true;
+
+      } catch (err) {
+        showStatus("Failed to send: " + err.message, "error");
+      } finally {
+        const sendButton = document.getElementById('send-button');
+        sendButton.disabled = false;
+        sendButton.textContent = "Send Announcement";
       }
+    }
+
+    function showStatus(message, type) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `status ${type}`;
+      status.style.display = 'block';
     }
   </script>
 </body>
