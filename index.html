@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>[123] Discord Combat Message Form - Icon Rooms</title>
+  <title>[124] Discord Combat Message Form - Icon Rooms</title>
   <style>
     :root {
       --bg: #2c2f33;
@@ -82,11 +82,7 @@
 
     .room-option {
       position: relative;
-      cursor: pointer;
       border-radius: 8px;
-      overflow: hidden;
-      transition: box-shadow 0.3s ease;
-      user-select: none;
     }
 
     .room-option input[type="checkbox"] {
@@ -98,6 +94,8 @@
       width: 50px;
       height: 50px;
       border-radius: 8px;
+      cursor: pointer;
+      display: block;
     }
 
     .room-option .icon-wrapper img {
@@ -109,6 +107,7 @@
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
+    .room-option input[type="checkbox"]:checked + label .icon-wrapper img,
     .room-option input[type="checkbox"]:checked + .icon-wrapper img {
       box-shadow: 0 0 8px 3px var(--glow-color);
       transform: scale(1.05);
@@ -129,7 +128,7 @@
       border-radius: 8px;
       opacity: 0;
       transition: opacity 0.3s ease;
-      pointer-events: none; /* <-- Important: allows click to pass through */
+      pointer-events: none;
     }
 
     .room-option .icon-wrapper:hover .overlay {
@@ -189,21 +188,21 @@
     <div class="form-group">
       <label>Select Rooms (Teams):</label>
       <div class="room-selection">
-        <label class="room-option" title="Team Blue Room">
-          <input type="checkbox" class="webhook-checkbox" value="https://discord.com/api/webhooks/1391917093099798690/gX04dswYaOxRApqAp8QAyvvCiaVv2LX9Yt7FZFkD0e4WIYwNjS_07C19SZ7MoyS80Y9y" />
-          <div class="icon-wrapper">
+        <div class="room-option" title="Team Blue Room">
+          <input type="checkbox" class="webhook-checkbox" id="room-frog" value="https://discord.com/api/webhooks/1391917093099798690/gX04dswYaOxRApqAp8QAyvvCiaVv2LX9Yt7FZFkD0e4WIYwNjS_07C19SZ7MoyS80Y9y">
+          <label for="room-frog" class="icon-wrapper">
             <img src="https://legendzer0-01.github.io/anny/frog.png" alt="Team Blue Room" />
             <div class="overlay">[FROG]</div>
-          </div>
-        </label>
+          </label>
+        </div>
 
-        <label class="room-option" title="Team Red Room">
-          <input type="checkbox" class="webhook-checkbox" value="https://discord.com/api/webhooks/1391917266953830420/Q3K8Ibt-3CB4XXGE-MP5xDaHVyPxuBp87RNf8pLGs7YYRmuLCaMW5Qd_Hg7O_ovgoq4l" />
-          <div class="icon-wrapper">
+        <div class="room-option" title="Team Red Room">
+          <input type="checkbox" class="webhook-checkbox" id="room-howl" value="https://discord.com/api/webhooks/1391917266953830420/Q3K8Ibt-3CB4XXGE-MP5xDaHVyPxuBp87RNf8pLGs7YYRmuLCaMW5Qd_Hg7O_ovgoq4l">
+          <label for="room-howl" class="icon-wrapper">
             <img src="https://legendzer0-01.github.io/anny/wolf.png" alt="Team Red Room" />
             <div class="overlay">[HOWL]</div>
-          </div>
-        </label>
+          </label>
+        </div>
       </div>
     </div>
 
