@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>[116] Discord Combat Message Form</title>
+  <title>[117] Discord Combat Message Form</title>
   <style>
     :root {
       --bg: #2c2f33;
@@ -273,8 +273,7 @@
         title: (type === 'combat' && (team1 || team2)) ? `${team1} vs ${team2}` : title,
         description,
         color,
-        thumbnail: { url: preset.logo },
-        timestamp: new Date().toISOString()
+        thumbnail: { url: preset.logo }
       };
 
       try {
