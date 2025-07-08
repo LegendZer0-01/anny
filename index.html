@@ -1,20 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>[119] Discord Combat Message Form</title>
+  <meta charset="UTF-8" />
+  <title>[118] Discord Combat Message Form</title>
   <style>
+    :root {
+      --bg: #2c2f33;
+      --container-bg: #23272a;
+      --text: #ffffff;
+      --input-bg: #40444b;
+      --input-border: #72767d;
+      --accent: #5865F2;
+      --accent-hover: #4752c4;
+      --error: #f04747;
+      --success: #43b581;
+    }
+
     body {
       font-family: Arial, sans-serif;
       max-width: 800px;
       margin: 20px auto;
       padding: 20px;
-      background: #2c2f33;
-      color: #ffffff;
+      background: var(--bg);
+      color: var(--text);
     }
 
     .container {
-      background: #23272a;
+      background: var(--container-bg);
       padding: 25px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
@@ -32,17 +44,13 @@
 
     input, textarea, select {
       width: 100%;
-      padding: 10px;
+      padding: 8px;
       font-size: 14px;
       border-radius: 4px;
-      border: 1px solid #72767d;
-      background-color: #40444b;
-      color: #ffffff;
+      border: 1px solid var(--input-border);
+      background-color: var(--input-bg);
+      color: var(--text);
       box-sizing: border-box;
-    }
-
-    input[type="checkbox"] {
-      width: auto;
     }
 
     textarea {
@@ -50,7 +58,7 @@
     }
 
     button {
-      background: #5865F2;
+      background: var(--accent);
       color: white;
       border: none;
       padding: 12px;
@@ -79,12 +87,12 @@
     }
 
     .success {
-      background: #43b581;
+      background: var(--success);
       color: #fff;
     }
 
     .error {
-      background: #f04747;
+      background: var(--error);
       color: #fff;
     }
 
@@ -123,8 +131,8 @@
     <div class="form-group">
       <label>Select Rooms (Teams):</label>
       <div class="checkbox-columns">
-        <label><input type="checkbox" class="webhook-checkbox" value="https://discord.com/api/webhooks/1391917093099798690/gX04dswYaOxRApqAp8QAyvvCiaVv2LX9Yt7FZFkD0e4WIYwNjS_07C19SZ7MoyS80Y9y"> 🔶 Team Blue Room</label>
-        <label><input type="checkbox" class="webhook-checkbox" value="https://discord.com/api/webhooks/1391917266953830420/Q3K8Ibt-3CB4XXGE-MP5xDaHVyPxuBp87RNf8pLGs7YYRmuLCaMW5Qd_Hg7O_ovgoq4l"> 🔴 Team Red Room</label>
+        <label><input type="checkbox" class="webhook-checkbox" value="https://discord.com/api/webhooks/1391917093099798690/gX04dswYaOxRApqAp8QAyvvCiaVv2LX9Yt7FZFkD0e4WIYwNjS_07C19SZ7MoyS80Y9y"> 🟦 Team Blue Room</label>
+        <label><input type="checkbox" class="webhook-checkbox" value="https://discord.com/api/webhooks/1391917266953830420/Q3K8Ibt-3CB4XXGE-MP5xDaHVyPxuBp87RNf8pLGs7YYRmuLCaMW5Qd_Hg7O_ovgoq4l"> 🟥 Team Red Room</label>
       </div>
     </div>
 
@@ -159,17 +167,6 @@
     <div class="form-group">
       <label>Content:</label>
       <textarea id="content" rows="4"></textarea>
-    </div>
-
-    <div class="form-group">
-      <label>Presets:</label>
-      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <button type="button" onclick="savePreset()">💾 Save Preset</button>
-        <button type="button" onclick="loadPreset()">📂 Load Presets</button>
-        <select id="presetSelect" onchange="applyPreset()" style="flex: 1;">
-          <option value="">-- Select Preset --</option>
-        </select>
-      </div>
     </div>
 
     <button id="send-button" onclick="sendWebhook()" disabled>Send Announcement</button>
@@ -247,7 +244,7 @@
 
     async function sendWebhook() {
       const type = document.getElementById('messageType').value;
-      if (!type) return;
+      if (!type || !typePresets[type]) return;
 
       const selectedWebhooks = [...document.querySelectorAll('.webhook-checkbox:checked')].map(cb => cb.value);
       if (selectedWebhooks.length === 0) {
@@ -264,6 +261,7 @@
       const content = document.getElementById('content')?.value || '';
 
       const preset = typePresets[type];
+      const color = parseInt(preset.color.replace("#", ""), 16);
 
       let description = content || "(no content)";
       if (type === 'combat') {
@@ -274,7 +272,7 @@
       const embed = {
         title: (type === 'combat' && (team1 || team2)) ? `${team1} vs ${team2}` : title,
         description,
-        color: parseInt(preset.color.replace("#", ""), 16),
+        color,
         thumbnail: { url: preset.logo }
       };
 
@@ -284,20 +282,31 @@
         sendButton.textContent = "Sending...";
 
         for (const webhookUrl of selectedWebhooks) {
-          await fetch(webhookUrl, {
+          const payload = {
+  username: preset.username,
+  avatar_url: "https://legendzer0-01.github.io/anny/BEL.png",
+  content: " ",
+  embeds: [embed]
+};
+
+
+          const response = await fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              username: preset.username,
-              avatar_url: "https://legendzer0-01.github.io/anny/BEL.png",
-              content: " ",
-              embeds: [embed]
-            })
+            body: JSON.stringify(payload)
           });
+
+          const result = await response.text();
+          console.log(`Webhook to ${webhookUrl} status:`, response.status);
+          console.log(`Response:`, result);
         }
 
         showStatus("Message sent successfully!", "success");
-        ['team1','team2','coords','battleDate','battleTime','title','content'].forEach(id => document.getElementById(id).value = '');
+
+        ['team1','team2','coords','battleDate','battleTime','title','content'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
         document.getElementById('messageType').value = '';
         document.getElementById('combat-fields').style.display = 'none';
         document.querySelectorAll('.webhook-checkbox').forEach(cb => cb.checked = false);
@@ -319,65 +328,6 @@
       status.className = `status ${type}`;
       status.style.display = 'block';
     }
-
-    function savePreset() {
-      const name = prompt("Enter a name for this preset:");
-      if (!name) return;
-      const preset = {
-        type: document.getElementById('messageType').value,
-        team1: document.getElementById('team1')?.value || '',
-        team2: document.getElementById('team2')?.value || '',
-        coords: document.getElementById('coords')?.value || '',
-        battleDate: document.getElementById('battleDate')?.value || '',
-        battleTime: document.getElementById('battleTime')?.value || '',
-        title: document.getElementById('title').value,
-        content: document.getElementById('content').value
-      };
-      const presets = JSON.parse(localStorage.getItem('messagePresets') || '{}');
-      presets[name] = preset;
-      localStorage.setItem('messagePresets', JSON.stringify(presets));
-      populatePresetSelect();
-      alert("Preset saved as: " + name);
-    }
-
-    function loadPreset() {
-      populatePresetSelect();
-      document.getElementById('presetSelect').focus();
-    }
-
-    function applyPreset() {
-      const name = document.getElementById('presetSelect').value;
-      if (!name) return;
-      const presets = JSON.parse(localStorage.getItem('messagePresets') || '{}');
-      const preset = presets[name];
-      if (!preset) return;
-      document.getElementById('messageType').value = preset.type;
-      document.getElementById('team1')?.value = preset.team1;
-      document.getElementById('team2')?.value = preset.team2;
-      document.getElementById('coords')?.value = preset.coords;
-      document.getElementById('battleDate')?.value = preset.battleDate;
-      document.getElementById('battleTime')?.value = preset.battleTime;
-      document.getElementById('title').value = preset.title;
-      document.getElementById('content').value = preset.content;
-      handleTypeChange();
-      updatePreview();
-    }
-
-    function populatePresetSelect() {
-      const presets = JSON.parse(localStorage.getItem('messagePresets') || '{}');
-      const select = document.getElementById('presetSelect');
-      select.innerHTML = '<option value="">-- Select Preset --</option>';
-      for (const name in presets) {
-        const option = document.createElement('option');
-        option.value = name;
-        option.textContent = name;
-        select.appendChild(option);
-      }
-    }
-
-    window.onload = () => {
-      populatePresetSelect();
-    };
   </script>
 </body>
 </html>
