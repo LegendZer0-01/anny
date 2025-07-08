@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>[118] Discord Combat Message Form</title>
+  <title>[119] Discord Combat Message Form</title>
   <style>
     :root {
       --bg: #2c2f33;
@@ -73,9 +73,29 @@
       cursor: not-allowed;
     }
 
-    .checkbox-columns label {
-      display: inline-block;
-      margin-right: 15px;
+    .room-select {
+      display: flex;
+      gap: 15px;
+      justify-content: start;
+      flex-wrap: wrap;
+    }
+
+    .room-icon {
+      width: 100px;
+      height: 100px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border: 2px solid transparent;
+    }
+
+    .room-icon:hover {
+      transform: scale(1.05);
+    }
+
+    .room-icon.selected {
+      box-shadow: 0 0 15px 5px #00ffea;
+      border-color: #00ffea;
     }
 
     .status {
@@ -130,9 +150,9 @@
 
     <div class="form-group">
       <label>Select Rooms (Teams):</label>
-      <div class="checkbox-columns">
-        <label><input type="checkbox" class="webhook-checkbox" value="https://discord.com/api/webhooks/1391917093099798690/gX04dswYaOxRApqAp8QAyvvCiaVv2LX9Yt7FZFkD0e4WIYwNjS_07C19SZ7MoyS80Y9y"> 🟦 Team Blue Room</label>
-        <label><input type="checkbox" class="webhook-checkbox" value="https://discord.com/api/webhooks/1391917266953830420/Q3K8Ibt-3CB4XXGE-MP5xDaHVyPxuBp87RNf8pLGs7YYRmuLCaMW5Qd_Hg7O_ovgoq4l"> 🟥 Team Red Room</label>
+      <div class="room-select">
+        <img src="https://legendzer0-01.github.io/anny/frog.png" class="room-icon" data-webhook="https://discord.com/api/webhooks/1391917093099798690/gX04dswYaOxRApqAp8QAyvvCiaVv2LX9Yt7FZFkD0e4WIYwNjS_07C19SZ7MoyS80Y9y" alt="Team Blue">
+        <img src="https://legendzer0-01.github.io/anny/frog.png" class="room-icon" data-webhook="https://discord.com/api/webhooks/1391917266953830420/Q3K8Ibt-3CB4XXGE-MP5xDaHVyPxuBp87RNf8pLGs7YYRmuLCaMW5Qd_Hg7O_ovgoq4l" alt="Team Red">
       </div>
     </div>
 
@@ -200,12 +220,14 @@
 
     function handleTypeChange() {
       const type = document.getElementById('messageType').value;
-      document.getElementById('send-button').disabled = !type;
+      document.getElementById('send-button').disabled = !type || getSelectedWebhooks().length === 0;
       document.getElementById('combat-fields').style.display = (type === 'combat') ? 'block' : 'none';
       updatePreview();
     }
 
-    document.querySelectorAll('input, textarea, select').forEach(el => el.addEventListener('input', updatePreview));
+    function getSelectedWebhooks() {
+      return [...document.querySelectorAll('.room-icon.selected')].map(img => img.getAttribute('data-webhook'));
+    }
 
     function updatePreview() {
       const type = document.getElementById('messageType').value;
@@ -246,7 +268,7 @@
       const type = document.getElementById('messageType').value;
       if (!type || !typePresets[type]) return;
 
-      const selectedWebhooks = [...document.querySelectorAll('.webhook-checkbox:checked')].map(cb => cb.value);
+      const selectedWebhooks = getSelectedWebhooks();
       if (selectedWebhooks.length === 0) {
         showStatus("Please select at least one room.", "error");
         return;
@@ -283,12 +305,11 @@
 
         for (const webhookUrl of selectedWebhooks) {
           const payload = {
-  username: preset.username,
-  avatar_url: "https://legendzer0-01.github.io/anny/BEL.png",
-  content: " ",
-  embeds: [embed]
-};
-
+            username: preset.username,
+            avatar_url: "https://legendzer0-01.github.io/anny/BEL.png",
+            content: " ",
+            embeds: [embed]
+          };
 
           const response = await fetch(webhookUrl, {
             method: 'POST',
@@ -309,7 +330,7 @@
         });
         document.getElementById('messageType').value = '';
         document.getElementById('combat-fields').style.display = 'none';
-        document.querySelectorAll('.webhook-checkbox').forEach(cb => cb.checked = false);
+        document.querySelectorAll('.room-icon').forEach(cb => cb.classList.remove('selected'));
         document.getElementById('send-button').disabled = true;
         document.getElementById('embed-preview').innerHTML = 'Your announcement preview will appear here.';
 
@@ -328,6 +349,15 @@
       status.className = `status ${type}`;
       status.style.display = 'block';
     }
+
+    document.querySelectorAll('.room-icon').forEach(icon => {
+      icon.addEventListener('click', () => {
+        icon.classList.toggle('selected');
+        document.getElementById('send-button').disabled = getSelectedWebhooks().length === 0 || !document.getElementById('messageType').value;
+      });
+    });
+
+    document.querySelectorAll('input, textarea, select').forEach(el => el.addEventListener('input', updatePreview));
   </script>
 </body>
 </html>
