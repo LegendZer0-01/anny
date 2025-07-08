@@ -30,6 +30,7 @@
       padding: 25px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      margin-bottom: 20px;
     }
 
     .form-group {
@@ -124,7 +125,19 @@
   </style>
 </head>
 <body>
-  <div class="container">
+
+  <!-- PASSWORD GATE -->
+  <div class="container" id="password-container">
+    <h2>Please Enter Password</h2>
+    <input type="password" id="password-input" placeholder="Enter password" autocomplete="off" />
+    <button onclick="checkPassword()">Submit</button>
+    <div id="password-error" style="color: var(--error); margin-top: 10px; display:none;">
+      Incorrect password, try again.
+    </div>
+  </div>
+
+  <!-- MAIN FORM - initially hidden -->
+  <div class="container" id="main-form" style="display:none;">
     <h2>Discord Battle Announcement</h2>
 
     <div class="form-group">
@@ -148,39 +161,34 @@
     <div id="combat-fields" style="display:none;">
       <div class="form-group">
         <label>Team 1:</label>
-        <input type="text" id="team1" />
+        <input type="text" id="team1" autocomplete="off">
       </div>
       <div class="form-group">
         <label>Team 2:</label>
-        <input type="text" id="team2" />
+        <input type="text" id="team2" autocomplete="off">
       </div>
       <div class="form-group">
         <label>Coordinates:</label>
-        <input type="text" id="coords" placeholder="B00:00:00:00" />
+        <input type="text" id="coords" placeholder="B00:00:00:00" autocomplete="off">
       </div>
       <div class="form-group">
         <label>Date:</label>
-        <input type="date" id="battleDate" />
+        <input type="date" id="battleDate" autocomplete="off">
       </div>
       <div class="form-group">
         <label>Time (24h with seconds):</label>
-        <input type="time" id="battleTime" step="1" />
+        <input type="time" id="battleTime" step="1" autocomplete="off">
       </div>
     </div>
 
     <div class="form-group">
       <label>Title:</label>
-      <input type="text" id="title" />
+      <input type="text" id="title" autocomplete="off">
     </div>
 
     <div class="form-group">
       <label>Content:</label>
-      <textarea id="content" rows="4"></textarea>
-    </div>
-
-    <div class="form-group">
-      <label>Webhook Username Override (optional):</label>
-      <input type="text" id="usernameOverride" placeholder="BattleBot" autocomplete="off" />
+      <textarea id="content" rows="4" autocomplete="off"></textarea>
     </div>
 
     <button id="send-button" onclick="sendWebhook()" disabled>Send Announcement</button>
@@ -194,6 +202,19 @@
   </div>
 
   <script>
+    const PASSWORD = "Password"; // change this!
+
+    function checkPassword() {
+      const input = document.getElementById('password-input').value;
+      if (input === PASSWORD) {
+        document.getElementById('password-container').style.display = 'none';
+        document.getElementById('main-form').style.display = 'block';
+      } else {
+        const error = document.getElementById('password-error');
+        error.style.display = 'block';
+      }
+    }
+
     const typePresets = {
       combat: {
         color: '#ff4d4d',
@@ -216,9 +237,7 @@
       updatePreview();
     }
 
-    document.querySelectorAll('input, textarea, select').forEach(el =>
-      el.addEventListener('input', updatePreview)
-    );
+    document.querySelectorAll('input, textarea, select').forEach(el => el.addEventListener('input', updatePreview));
 
     function updatePreview() {
       const type = document.getElementById('messageType').value;
@@ -240,12 +259,8 @@
 
       let desc = content ? content.replace(/\n/g, '<br>') : '(no content)';
       if (type === 'combat') {
-        if (coords)
-          desc += `<br><strong>Coordinates:</strong> <a href="https://astroempires.com/map.aspx?loc=${encodeURIComponent(
-            coords
-          )}" target="_blank">${coords}</a>`;
-        if (date && time)
-          desc += `<br><strong>Expected Time:</strong> ${date} ${time}`;
+        if (coords) desc += `<br><strong>Coordinates:</strong> <a href="https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)}" target="_blank">${coords}</a>`;
+        if (date && time) desc += `<br><strong>Expected Time:</strong> ${date} ${time}`;
       }
 
       const embedHTML = `
@@ -253,7 +268,6 @@
           <img src="${logo}" style="height: 50px; float: right;">
           <h4>${type === 'combat' ? `${team1} vs ${team2}` : title}</h4>
           <p>${desc}</p>
-          <small>${new Date().toLocaleString()}</small>
         </div>
       `;
 
@@ -264,11 +278,9 @@
       const type = document.getElementById('messageType').value;
       if (!type) return;
 
-      const selectedWebhooks = [...document.querySelectorAll('.webhook-checkbox:checked')].map(
-        (cb) => cb.value
-      );
+      const selectedWebhooks = [...document.querySelectorAll('.webhook-checkbox:checked')].map(cb => cb.value);
       if (selectedWebhooks.length === 0) {
-        showStatus('Please select at least one room.', 'error');
+        showStatus("Please select at least one room.", "error");
         return;
       }
 
@@ -279,47 +291,34 @@
       const time = document.getElementById('battleTime')?.value || '';
       const title = document.getElementById('title')?.value || '';
       const content = document.getElementById('content')?.value || '';
-      const usernameOverride = document.getElementById('usernameOverride')?.value.trim();
 
-      const color = parseInt(typePresets[type].color.replace('#', ''), 16);
+      const color = parseInt(typePresets[type].color.replace("#", ""), 16);
       const logo = typePresets[type].logo;
 
-      let description = content || '(no content)';
+      let description = content || "(no content)";
       if (type === 'combat') {
-        if (coords)
-          description += `\n**Coordinates:** [${coords}](https://astroempires.com/map.aspx?loc=${encodeURIComponent(
-            coords
-          )})`;
+        if (coords) description += `\n**Coordinates:** [${coords}](https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)})`;
         if (date && time) description += `\n**Expected Time:** ${date} ${time}`;
       }
 
       const embed = {
-        title: type === 'combat' && (team1 || team2) ? `${team1} vs ${team2}` : title,
+        title: (type === 'combat' && (team1 || team2)) ? `${team1} vs ${team2}` : title,
         description,
         color,
         thumbnail: { url: logo },
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString()
       };
 
       try {
         const sendButton = document.getElementById('send-button');
         sendButton.disabled = true;
-        sendButton.textContent = 'Sending...';
+        sendButton.textContent = "Sending...";
 
         for (const webhookUrl of selectedWebhooks) {
-          const payload = {
-            content: ' ',
-            embeds: [embed],
-          };
-
-          if (usernameOverride) {
-            payload.username = usernameOverride;
-          }
-
           const response = await fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ content: " ", embeds: [embed] })
           });
 
           const result = await response.text();
@@ -327,25 +326,24 @@
           console.log(`Response:`, result);
         }
 
-        showStatus('Message sent successfully!', 'success');
+        showStatus("Message sent successfully!", "success");
 
-        // Reset fields
-        ['team1', 'team2', 'coords', 'battleDate', 'battleTime', 'title', 'content', 'usernameOverride'].forEach((id) => {
+        ['team1','team2','coords','battleDate','battleTime','title','content'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.value = '';
         });
-
         document.getElementById('messageType').value = '';
         document.getElementById('combat-fields').style.display = 'none';
-        document.querySelectorAll('.webhook-checkbox').forEach((cb) => (cb.checked = false));
+        document.querySelectorAll('.webhook-checkbox').forEach(cb => cb.checked = false);
         document.getElementById('send-button').disabled = true;
         document.getElementById('embed-preview').innerHTML = 'Your announcement preview will appear here.';
+
       } catch (err) {
-        showStatus('Failed to send: ' + err.message, 'error');
+        showStatus("Failed to send: " + err.message, "error");
       } finally {
         const sendButton = document.getElementById('send-button');
         sendButton.disabled = false;
-        sendButton.textContent = 'Send Announcement';
+        sendButton.textContent = "Send Announcement";
       }
     }
 
