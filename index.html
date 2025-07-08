@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-  <title>[126] Discord Combat Message Form - Icon Rooms</title>
+  <title>[127] Discord Combat Message Form - Icon Rooms</title>
   <style>
     :root {
       --bg: #2c2f33;
@@ -241,7 +241,9 @@
       combat: {
         color: '#ff4d4d',
         logo: 'https://legendzer0-01.github.io/anny/atk.png',
-        username: 'New Combat Scheduled'
+        username: 'New Combat Scheduled',
+        // Add a special combat webhook URL here
+        specialWebhook: 'https://discord.com/api/webhooks/1392275660268896376/oQH7e8V9yaCemFW15KtXrR50X_YIQmlH0y3Go3KQSbu50A5_Ln8kv4FFJT9cmgGHPHgG'
       },
       announcement: {
         color: '#5865F2',
@@ -287,8 +289,8 @@
 
       let desc = content ? content.replace(/\n/g, '<br>') : '(no content)';
       if (type === 'combat') {
-        if (playerLimit) description += `<br><strong>Max Fleet Per Player:</strong> ${playerLimit}`;
-       // if (guildLimit) description += `<br><strong><Max Fleet Per Guild:</strong> ${guildLimit}`;
+        if (playerLimit) desc += `<br><strong>Max Fleet Per Player:</strong> ${playerLimit}`;
+        if (guildLimit) desc += `<br><strong>Max Fleet Per Guild:</strong> ${guildLimit}`;
         if (coords) desc += `<br><strong>Coordinates:</strong> <a href="https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)}" target="_blank">${coords}</a>`;
         if (date && time) desc += `<br><strong>Expected Time:</strong> ${date} ${time}`;
       }
@@ -309,7 +311,14 @@
       if (!type || !typePresets[type]) return;
 
       const selectedWebhooks = [...document.querySelectorAll('.webhook-checkbox:checked')].map(cb => cb.value);
-      if (selectedWebhooks.length === 0) {
+      
+      // If it's a combat message, add the special combat webhook to the list
+      const webhooksToSend = [...selectedWebhooks];
+      if (type === 'combat' && typePresets.combat.specialWebhook) {
+        webhooksToSend.push(typePresets.combat.specialWebhook);
+      }
+
+      if (webhooksToSend.length === 0) {
         showStatus("Please select at least one room.", "error");
         return;
       }
@@ -347,7 +356,7 @@
         sendButton.disabled = true;
         sendButton.textContent = "Sending...";
 
-        for (const webhookUrl of selectedWebhooks) {
+        for (const webhookUrl of webhooksToSend) {
           const payload = {
             username: preset.username,
             avatar_url: "https://legendzer0-01.github.io/anny/BEL.png",
