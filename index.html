@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>[New-1] Discord Combat Message Form</title>
+  <title>Discord Combat Message Form</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -92,7 +92,7 @@
 </head>
 <body>
   <div class="container">
-    <h2>Discord Battle Announcement</h2>
+    <h2>[NEW] Discord Battle Announcement</h2>
 
     <div class="form-group">
       <label>Post Type:</label>
@@ -123,7 +123,7 @@
       </div>
       <div class="form-group">
         <label>Coordinates:</label>
-        <input type="text" id="coords" placeholder="B00:00:00:00">
+        <input type="text" id="coords" placeholder="E18:52:1">
       </div>
       <div class="form-group">
         <label>Date:</label>
@@ -159,15 +159,15 @@
     const typePresets = {
       combat: {
         color: '#ff4d4d',
-        logo: 'atk.png'
+        logo: 'https://cdn-icons-png.flaticon.com/512/10890/10890335.png'
       },
       announcement: {
         color: '#5865F2',
-        logo: 'alert.png'
+        logo: 'https://cdn-icons-png.flaticon.com/512/10464/10464718.png'
       },
       emergency: {
         color: '#faa61a',
-        logo: 'warning.png'
+        logo: 'https://cdn-icons-png.flaticon.com/512/2014/2014825.png'
       }
     };
 
@@ -200,18 +200,18 @@
 
       let desc = content ? content.replace(/\n/g, '<br>') : '(no content)';
       if (type === 'combat') {
-        if (coords) desc += <br><strong>Coordinates:</strong> <a href="https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)}" target="_blank">${coords}</a>;
-        if (date && time) desc += <br><strong>Expected Time:</strong> ${date} ${time};
+        if (coords) desc += `<br><strong>Coordinates:</strong> <a href="https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)}" target="_blank">${coords}</a>`;
+        if (date && time) desc += `<br><strong>Expected Time:</strong> ${date} ${time}`;
       }
 
-      const embedHTML = 
+      const embedHTML = `
         <div style="border-left: 4px solid ${embedColor}; padding: 10px; background: #2f3136; color: white; border-radius: 5px;">
           <img src="${logo}" style="height: 50px; float: right;">
-          <h4>${type === 'combat' ? ${team1} vs ${team2} : title}</h4>
+          <h4>${type === 'combat' ? `${team1} vs ${team2}` : title}</h4>
           <p>${desc}</p>
           <small>${new Date().toLocaleString()}</small>
         </div>
-      ;
+      `;
 
       document.getElementById('embed-preview').innerHTML = embedHTML;
     }
@@ -239,12 +239,12 @@
 
       let description = content || "(no content)";
       if (type === 'combat') {
-        if (coords) description += \n**Coordinates:** [${coords}](https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)});
-        if (date && time) description += \n**Expected Time:** ${date} ${time};
+        if (coords) description += `\n**Coordinates:** [${coords}](https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)})`;
+        if (date && time) description += `\n**Expected Time:** ${date} ${time}`;
       }
 
       const embed = {
-        title: (type === 'combat' && (team1 || team2)) ? ${team1} vs ${team2} : title,
+        title: (type === 'combat' && (team1 || team2)) ? `${team1} vs ${team2}` : title,
         description,
         color,
         thumbnail: { url: logo },
@@ -267,8 +267,8 @@
           });
 
           const result = await response.text();
-          console.log(Webhook to ${webhookUrl} status:, response.status);
-          console.log(Response:, result);
+          console.log(`Webhook to ${webhookUrl} status:`, response.status);
+          console.log(`Response:`, result);
         }
 
         showStatus("Message sent successfully!", "success");
@@ -296,7 +296,7 @@
     function showStatus(message, type) {
       const status = document.getElementById('status');
       status.textContent = message;
-      status.className = status ${type};
+      status.className = `status ${type}`;
       status.style.display = 'block';
     }
   </script>
