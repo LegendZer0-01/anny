@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>[117] Discord Combat Message Form</title>
+  <title>[118] Discord Combat Message Form</title>
   <style>
     :root {
       --bg: #2c2f33;
@@ -283,10 +283,12 @@
 
         for (const webhookUrl of selectedWebhooks) {
           const payload = {
-            username: preset.username,
-            content: " ",
-            embeds: [embed]
-          };
+  username: preset.username,
+  avatar_url: "https://legendzer0-01.github.io/anny/BEL.png",
+  content: " ",
+  embeds: [embed]
+};
+
 
           const response = await fetch(webhookUrl, {
             method: 'POST',
