@@ -281,7 +281,7 @@
       let desc = content ? content.replace(/\n/g, '<br>') : '(no content)';
       if (type === 'combat') {
         if (playerLimit) description += `<br><strong>Max Fleet Per Player:</strong> ${playerLimit}`;
-        if (guildLimit) description += `<br><strong><Max Fleet Per Guild:</strong> ${guildLimit}`;
+       // if (guildLimit) description += `<br><strong><Max Fleet Per Guild:</strong> ${guildLimit}`;
         if (coords) desc += `<br><strong>Coordinates:</strong> <a href="https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)}" target="_blank">${coords}</a>`;
         if (date && time) desc += `<br><strong>Expected Time:</strong> ${date} ${time}`;
       }
