@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-  <title>[127] Discord Combat Message Form - Icon Rooms</title>
+  <title>[128] Discord Combat Message Form - Icon Rooms</title>
   <style>
     :root {
       --bg: #2c2f33;
@@ -190,14 +190,14 @@
       <label>Select Rooms (Teams):</label>
       <div class="room-selection">
         <div class="room-option" title="WWD">
-          <input type="checkbox" class="webhook-checkbox" id="room-wwd" value="https://discord.com/api/webhooks/1392253876358348831/75AlJshcP3PfKEpWCTgYc-O6VFcKJbDOClg7DJJdHHK9bmYPQOtH4iHPy0EOjyViAFlp">
+          <input type="checkbox" class="webhook-checkbox" id="room-wwd" data-room="wwd">
           <label for="room-wwd" class="icon-wrapper">
             <img src="https://legendzer0-01.github.io/anny/wwd.png" alt="Team Blue Room" />
             <div class="overlay">[WWD]</div>
           </label>
         </div>
         <div class="room-option" title="Team Blue Room">
-          <input type="checkbox" class="webhook-checkbox" id="room-frog" value="https://discord.com/api/webhooks/1391917093099798690/gX04dswYaOxRApqAp8QAyvvCiaVv2LX9Yt7FZFkD0e4WIYwNjS_07C19SZ7MoyS80Y9y">
+          <input type="checkbox" class="webhook-checkbox" id="room-frog" data-room="frog">
           <label for="room-frog" class="icon-wrapper">
             <img src="https://legendzer0-01.github.io/anny/frog.png" alt="Team Blue Room" />
             <div class="overlay">[FROG]</div>
@@ -205,7 +205,7 @@
         </div>
 
         <div class="room-option" title="Team Red Room">
-          <input type="checkbox" class="webhook-checkbox" id="room-howl" value="https://discord.com/api/webhooks/1391917266953830420/Q3K8Ibt-3CB4XXGE-MP5xDaHVyPxuBp87RNf8pLGs7YYRmuLCaMW5Qd_Hg7O_ovgoq4l">
+          <input type="checkbox" class="webhook-checkbox" id="room-howl" data-room="howl">
           <label for="room-howl" class="icon-wrapper">
             <img src="https://legendzer0-01.github.io/anny/wolf.png" alt="Team Red Room" />
             <div class="overlay">[HOWL]</div>
@@ -237,12 +237,27 @@
   </div>
 
   <script>
+    // Room configuration with webhooks and role IDs
+    const roomConfig = {
+      wwd: {
+        webhook: 'https://discord.com/api/webhooks/1392253876358348831/75AlJshcP3PfKEpWCTgYc-O6VFcKJbDOClg7DJJdHHK9bmYPQOtH4iHPy0EOjyViAFlp',
+        roleId: '123456789012345678' // Replace with actual WWD role ID
+      },
+      frog: {
+        webhook: 'https://discord.com/api/webhooks/1391917093099798690/gX04dswYaOxRApqAp8QAyvvCiaVv2LX9Yt7FZFkD0e4WIYwNjS_07C19SZ7MoyS80Y9y',
+        roleId: '1322808412102328330' // Replace with actual FROG role ID
+      },
+      howl: {
+        webhook: 'https://discord.com/api/webhooks/1391917266953830420/Q3K8Ibt-3CB4XXGE-MP5xDaHVyPxuBp87RNf8pLGs7YYRmuLCaMW5Qd_Hg7O_ovgoq4l',
+        roleId: '1322794490313834507' // Replace with actual HOWL role ID
+      }
+    };
+
     const typePresets = {
       combat: {
         color: '#ff4d4d',
         logo: 'https://legendzer0-01.github.io/anny/atk.png',
         username: 'New Combat Scheduled',
-        // Add a special combat webhook URL here
         specialWebhook: 'https://discord.com/api/webhooks/1392275660268896376/oQH7e8V9yaCemFW15KtXrR50X_YIQmlH0y3Go3KQSbu50A5_Ln8kv4FFJT9cmgGHPHgG'
       },
       announcement: {
@@ -310,12 +325,18 @@
       const type = document.getElementById('messageType').value;
       if (!type || !typePresets[type]) return;
 
-      const selectedWebhooks = [...document.querySelectorAll('.webhook-checkbox:checked')].map(cb => cb.value);
-      
+      // Get selected rooms and their configurations
+      const selectedRooms = [...document.querySelectorAll('.webhook-checkbox:checked')]
+        .map(cb => cb.dataset.room)
+        .map(room => roomConfig[room]);
+
       // If it's a combat message, add the special combat webhook to the list
-      const webhooksToSend = [...selectedWebhooks];
+      const webhooksToSend = [...selectedRooms];
       if (type === 'combat' && typePresets.combat.specialWebhook) {
-        webhooksToSend.push(typePresets.combat.specialWebhook);
+        webhooksToSend.push({
+          webhook: typePresets.combat.specialWebhook,
+          roleId: typePresets.combat.specialRoleId
+        });
       }
 
       if (webhooksToSend.length === 0) {
@@ -356,22 +377,25 @@
         sendButton.disabled = true;
         sendButton.textContent = "Sending...";
 
-        for (const webhookUrl of webhooksToSend) {
+        for (const room of webhooksToSend) {
+          // Include role ping if available
+          const content = room.roleId ? `<@&${room.roleId}>` : " ";
+          
           const payload = {
             username: preset.username,
             avatar_url: "https://legendzer0-01.github.io/anny/BEL.png",
-            content: " ",
+            content: content,
             embeds: [embed]
           };
 
-          const response = await fetch(webhookUrl, {
+          const response = await fetch(room.webhook, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
 
           const result = await response.text();
-          console.log(`Webhook to ${webhookUrl} status:`, response.status);
+          console.log(`Webhook to ${room.webhook} status:`, response.status);
           console.log(`Response:`, result);
         }
 
