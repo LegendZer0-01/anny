@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>[122] Discord Combat Message Form</title>
+  <title>[122] Discord Combat Message Form - Icon Rooms</title>
   <style>
     :root {
       --bg: #2c2f33;
@@ -14,6 +14,7 @@
       --accent-hover: #4752c4;
       --error: #f04747;
       --success: #43b581;
+      --glow-color: #5865F2;
     }
 
     body {
@@ -73,64 +74,73 @@
       cursor: not-allowed;
     }
 
-    .room-select {
+    /* --- New styles for icon room selection --- */
+
+    .room-selection {
       display: flex;
-      gap: 15px;
-      justify-content: start;
-      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 8px;
     }
 
-    .room-icon {
+    .room-option {
+      position: relative;
       height: 50px;
-      border-radius: 8px;
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      border: 2px solid transparent;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 5px transparent;
+      transition: box-shadow 0.3s ease;
+      user-select: none;
     }
 
-    .room-icon:hover {
-      transform: scale(1.05);
-    }
-
-    .room-icon.selected {
-      box-shadow: 0 0 5px 2px #ff8b38;
-      border-color: #ff8b38;
-    }
-
-    .status {
-      margin-top: 15px;
-      padding: 10px;
-      border-radius: 5px;
+    /* Hidden checkbox */
+    .room-option input[type="checkbox"] {
       display: none;
-      text-align: center;
     }
 
-    .success {
-      background: var(--success);
-      color: #fff;
+    /* The frog icon */
+    .room-option img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      border-radius: 8px;
+      transition: transform 0.3s ease;
     }
 
-    .error {
-      background: var(--error);
-      color: #fff;
+    /* Glow effect when checked */
+    .room-option input[type="checkbox"]:checked + img {
+      box-shadow: 0 0 5px 2px var(--glow-color);
+      transform: scale(1.05);
+      border-radius: 8px;
     }
 
-    .preview {
-      margin-top: 30px;
+    /* Overlay container for hover effect */
+    .room-option .overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0); /* default transparent */
+      color: white;
+      font-weight: bold;
+      font-size: 18px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: background 0.3s ease, opacity 0.3s ease;
     }
 
-    .preview h3 {
-      margin-bottom: 10px;
+    /* Show overlay on hover */
+    .room-option:hover .overlay {
+      background: rgba(0,0,0,0.6);
+      opacity: 1;
+      pointer-events: auto;
     }
 
-    #embed-preview a {
-      color: #00aff4;
-      text-decoration: none;
-    }
-
-    #embed-preview a:hover {
-      text-decoration: underline;
-    }
   </style>
 </head>
 <body>
@@ -149,9 +159,18 @@
 
     <div class="form-group">
       <label>Select Rooms (Teams):</label>
-      <div class="room-select">
-        <img src="https://legendzer0-01.github.io/anny/frog.png" class="room-icon" data-webhook="https://discord.com/api/webhooks/1391917093099798690/gX04dswYaOxRApqAp8QAyvvCiaVv2LX9Yt7FZFkD0e4WIYwNjS_07C19SZ7MoyS80Y9y" alt="Team Blue">
-        <img src="https://legendzer0-01.github.io/anny/wolf.png" class="room-icon" data-webhook="https://discord.com/api/webhooks/1391917266953830420/Q3K8Ibt-3CB4XXGE-MP5xDaHVyPxuBp87RNf8pLGs7YYRmuLCaMW5Qd_Hg7O_ovgoq4l" alt="Team Red">
+      <div class="room-selection">
+        <label class="room-option" title="Team Blue Room">
+          <input type="checkbox" class="webhook-checkbox" value="https://discord.com/api/webhooks/1391917093099798690/gX04dswYaOxRApqAp8QAyvvCiaVv2LX9Yt7FZFkD0e4WIYwNjS_07C19SZ7MoyS80Y9y" />
+          <img src="https://legendzer0-01.github.io/anny/frog.png" alt="Team Blue Room" />
+          <div class="overlay">[FROG]</div>
+        </label>
+
+        <label class="room-option" title="Team Red Room">
+          <input type="checkbox" class="webhook-checkbox" value="https://discord.com/api/webhooks/1391917266953830420/Q3K8Ibt-3CB4XXGE-MP5xDaHVyPxuBp87RNf8pLGs7YYRmuLCaMW5Qd_Hg7O_ovgoq4l" />
+          <img src="https://legendzer0-01.github.io/anny/wolf.png" alt="Team Red Room" />
+          <div class="overlay">[HOWL]</div>
+        </label>
       </div>
     </div>
 
@@ -219,14 +238,14 @@
 
     function handleTypeChange() {
       const type = document.getElementById('messageType').value;
-      document.getElementById('send-button').disabled = !type || getSelectedWebhooks().length === 0;
+      document.getElementById('send-button').disabled = !type;
       document.getElementById('combat-fields').style.display = (type === 'combat') ? 'block' : 'none';
       updatePreview();
     }
 
-    function getSelectedWebhooks() {
-      return [...document.querySelectorAll('.room-icon.selected')].map(img => img.getAttribute('data-webhook'));
-    }
+    document.querySelectorAll('input, textarea, select').forEach(el => el.addEventListener('input', updatePreview));
+    // Also listen for checkbox changes on rooms
+    document.querySelectorAll('.webhook-checkbox').forEach(cb => cb.addEventListener('change', updatePreview));
 
     function updatePreview() {
       const type = document.getElementById('messageType').value;
@@ -267,7 +286,7 @@
       const type = document.getElementById('messageType').value;
       if (!type || !typePresets[type]) return;
 
-      const selectedWebhooks = getSelectedWebhooks();
+      const selectedWebhooks = [...document.querySelectorAll('.webhook-checkbox:checked')].map(cb => cb.value);
       if (selectedWebhooks.length === 0) {
         showStatus("Please select at least one room.", "error");
         return;
@@ -329,7 +348,7 @@
         });
         document.getElementById('messageType').value = '';
         document.getElementById('combat-fields').style.display = 'none';
-        document.querySelectorAll('.room-icon').forEach(cb => cb.classList.remove('selected'));
+        document.querySelectorAll('.webhook-checkbox').forEach(cb => cb.checked = false);
         document.getElementById('send-button').disabled = true;
         document.getElementById('embed-preview').innerHTML = 'Your announcement preview will appear here.';
 
@@ -348,15 +367,6 @@
       status.className = `status ${type}`;
       status.style.display = 'block';
     }
-
-    document.querySelectorAll('.room-icon').forEach(icon => {
-      icon.addEventListener('click', () => {
-        icon.classList.toggle('selected');
-        document.getElementById('send-button').disabled = getSelectedWebhooks().length === 0 || !document.getElementById('messageType').value;
-      });
-    });
-
-    document.querySelectorAll('input, textarea, select').forEach(el => el.addEventListener('input', updatePreview));
   </script>
 </body>
 </html>
