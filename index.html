@@ -2,34 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>[New] Discord Combat Message Form</title>
+  <title>[New-1] Discord Combat Message Form</title>
   <style>
-    :root {
-      --bg: #2c2f33;
-      --container-bg: #23272a;
-      --text: #ffffff;
-      --input-bg: #40444b;
-      --input-border: #72767d;
-      --accent: #5865F2;
-      --accent-hover: #4752c4;
-      --error: #f04747;
-      --success: #43b581;
-    }
-
     body {
       font-family: Arial, sans-serif;
       max-width: 800px;
       margin: 20px auto;
       padding: 20px;
-      background: var(--bg);
-      color: var(--text);
+      background: #f4f4f4;
     }
 
     .container {
-      background: var(--container-bg);
+      background: white;
       padding: 25px;
       border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
 
     .form-group {
@@ -44,17 +31,11 @@
 
     input, textarea, select {
       width: 100%;
-      padding: 10px;
+      padding: 8px;
       font-size: 14px;
       border-radius: 4px;
-      border: 1px solid var(--input-border);
-      background-color: var(--input-bg);
-      color: var(--text);
+      border: 1px solid #ccc;
       box-sizing: border-box;
-    }
-
-    input[type="checkbox"] {
-      width: auto;
     }
 
     textarea {
@@ -62,7 +43,7 @@
     }
 
     button {
-      background: var(--accent);
+      background: #5865F2;
       color: white;
       border: none;
       padding: 12px;
@@ -70,15 +51,10 @@
       width: 100%;
       border-radius: 5px;
       cursor: pointer;
-      transition: background 0.2s ease;
-    }
-
-    button:hover:not(:disabled) {
-      background: var(--accent-hover);
     }
 
     button:disabled {
-      background: #444;
+      background: #ccc;
       cursor: not-allowed;
     }
 
@@ -91,18 +67,18 @@
       margin-top: 15px;
       padding: 10px;
       border-radius: 5px;
-      text-align: center;
       display: none;
+      text-align: center;
     }
 
     .success {
-      background: var(--success);
-      color: #fff;
+      background: #d4edda;
+      color: #155724;
     }
 
     .error {
-      background: var(--error);
-      color: #fff;
+      background: #f8d7da;
+      color: #721c24;
     }
 
     .preview {
@@ -111,15 +87,6 @@
 
     .preview h3 {
       margin-bottom: 10px;
-    }
-
-    #embed-preview a {
-      color: #00aff4;
-      text-decoration: none;
-    }
-
-    #embed-preview a:hover {
-      text-decoration: underline;
     }
   </style>
 </head>
@@ -233,18 +200,18 @@
 
       let desc = content ? content.replace(/\n/g, '<br>') : '(no content)';
       if (type === 'combat') {
-        if (coords) desc += `<br><strong>Coordinates:</strong> <a href="https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)}" target="_blank">${coords}</a>`;
-        if (date && time) desc += `<br><strong>Expected Time:</strong> ${date} ${time}`;
+        if (coords) desc += <br><strong>Coordinates:</strong> <a href="https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)}" target="_blank">${coords}</a>;
+        if (date && time) desc += <br><strong>Expected Time:</strong> ${date} ${time};
       }
 
-      const embedHTML = `
+      const embedHTML = 
         <div style="border-left: 4px solid ${embedColor}; padding: 10px; background: #2f3136; color: white; border-radius: 5px;">
           <img src="${logo}" style="height: 50px; float: right;">
-          <h4>${type === 'combat' ? `${team1} vs ${team2}` : title}</h4>
+          <h4>${type === 'combat' ? ${team1} vs ${team2} : title}</h4>
           <p>${desc}</p>
           <small>${new Date().toLocaleString()}</small>
         </div>
-      `;
+      ;
 
       document.getElementById('embed-preview').innerHTML = embedHTML;
     }
@@ -272,12 +239,12 @@
 
       let description = content || "(no content)";
       if (type === 'combat') {
-        if (coords) description += `\n**Coordinates:** [${coords}](https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)})`;
-        if (date && time) description += `\n**Expected Time:** ${date} ${time}`;
+        if (coords) description += \n**Coordinates:** [${coords}](https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)});
+        if (date && time) description += \n**Expected Time:** ${date} ${time};
       }
 
       const embed = {
-        title: (type === 'combat' && (team1 || team2)) ? `${team1} vs ${team2}` : title,
+        title: (type === 'combat' && (team1 || team2)) ? ${team1} vs ${team2} : title,
         description,
         color,
         thumbnail: { url: logo },
@@ -293,16 +260,20 @@
           const response = await fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content: " ", embeds: [embed] })
+            body: JSON.stringify({
+              content: " ",
+              embeds: [embed]
+            })
           });
 
           const result = await response.text();
-          console.log(`Webhook to ${webhookUrl} status:`, response.status);
-          console.log(`Response:`, result);
+          console.log(Webhook to ${webhookUrl} status:, response.status);
+          console.log(Response:, result);
         }
 
         showStatus("Message sent successfully!", "success");
 
+        // Reset
         ['team1','team2','coords','battleDate','battleTime','title','content'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.value = '';
@@ -325,7 +296,7 @@
     function showStatus(message, type) {
       const status = document.getElementById('status');
       status.textContent = message;
-      status.className = `status ${type}`;
+      status.className = status ${type};
       status.style.display = 'block';
     }
   </script>
