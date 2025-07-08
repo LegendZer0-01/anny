@@ -1,80 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Discord Announcement Sender</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discord Battle Announcement</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 1000px;
-      margin: 0 auto;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f0f0;
       padding: 20px;
-      background-color: #f5f5f5;
+      max-width: 800px;
+      margin: auto;
     }
     .container {
-      background-color: white;
+      background-color: #fff;
       padding: 25px;
       border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     h1 {
-      color: #5865F2;
       text-align: center;
+      color: #333;
     }
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
     label {
-      display: block;
-      margin-bottom: 8px;
       font-weight: 600;
-      color: #555;
+      display: block;
+      margin-bottom: 5px;
     }
-    input[type="text"],
-    input[type="date"],
-    input[type="time"],
-    textarea,
-    select {
+    input, textarea, select {
       width: 100%;
       padding: 10px;
-      border: 1px solid #ddd;
+      font-size: 1rem;
+      border: 1px solid #ccc;
       border-radius: 4px;
-      font-size: 16px;
       box-sizing: border-box;
     }
     .inline-inputs {
       display: flex;
       gap: 10px;
     }
-    .inline-inputs .form-group {
+    .inline-inputs input {
       flex: 1;
     }
     button {
       background-color: #5865F2;
       color: white;
       border: none;
-      padding: 12px 20px;
+      padding: 12px;
       font-size: 16px;
       border-radius: 4px;
       cursor: pointer;
       width: 100%;
-      font-weight: 600;
-      transition: background-color 0.2s;
-    }
-    button:hover {
-      background-color: #4752C4;
+      font-weight: bold;
+      transition: 0.2s;
     }
     button:disabled {
-      background-color: #aab0d0;
+      background-color: #999;
       cursor: not-allowed;
     }
     .status {
-      margin-top: 15px;
+      margin-top: 10px;
       padding: 10px;
       border-radius: 4px;
-      text-align: center;
       display: none;
+      text-align: center;
     }
     .success {
       background-color: #d4edda;
@@ -85,30 +77,38 @@
       color: #721c24;
     }
     .preview {
-      margin-top: 30px;
-      border: 1px solid #ddd;
+      margin-top: 20px;
       padding: 15px;
-      border-radius: 4px;
-      background-color: #36393f;
+      background-color: #2f3136;
       color: white;
+      border-radius: 5px;
     }
-    .checkbox-columns {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 10px;
+    .preview a {
+      color: #00b0f4;
+      text-decoration: underline;
     }
-    a {
-      color: #00aff4;
-      text-decoration: none;
+    .checkbox-columns label {
+      display: inline-block;
+      margin-right: 15px;
     }
-    strong {
-      font-weight: bold;
+    #combat-fields {
+      display: none;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Battle Discord Announcement Sender</h1>
+    <h1>Discord Battle Post</h1>
+
+    <div class="form-group">
+      <label for="messageType">Post Type:</label>
+      <select id="messageType" onchange="handlePostTypeChange()">
+        <option value="">-- Select Post Type --</option>
+        <option value="combat">Combat</option>
+        <option value="announcement">Announcement</option>
+        <option value="emergency">Emergency</option>
+      </select>
+    </div>
 
     <div class="form-group">
       <label>Select Rooms (Teams):</label>
@@ -118,53 +118,48 @@
       </div>
     </div>
 
-    <div class="form-group">
-      <label for="messageType">Post Type:</label>
-      <select id="messageType">
-        <option value="" disabled selected>-- Select a Post Type --</option>
-        <option value="combat">⚔️ Combat</option>
-        <option value="announcement">📢 Announcement</option>
-        <option value="emergency">🔥 Emergency</option>
-      </select>
-    </div>
-
-    <div class="form-group" id="combat-fields" style="display:none">
-      <div class="inline-inputs">
-        <div class="form-group">
+    <div id="combat-fields">
+      <div class="form-group inline-inputs">
+        <div>
           <label for="team1">Team 1:</label>
-          <input type="text" id="team1" placeholder="Blue Fleet">
+          <input type="text" id="team1" placeholder="Blue">
         </div>
-        <div class="form-group">
+        <div>
           <label for="team2">Team 2:</label>
-          <input type="text" id="team2" placeholder="Red Armada">
+          <input type="text" id="team2" placeholder="Red">
         </div>
       </div>
+
       <div class="form-group">
-        <label for="coords">Battle Coordinates (e.g., C00:00:00):</label>
-        <input type="text" id="coords" placeholder="C00:00:00">
+        <label for="coords">Coords:</label>
+        <input type="text" id="coords" placeholder="E18:52:1">
       </div>
-      <div class="form-group">
-        <label for="battleDate">Expected Date:</label>
-        <input type="date" id="battleDate">
-      </div>
-      <div class="form-group">
-        <label for="battleTime">Expected Time:</label>
-        <input type="time" id="battleTime" step="1">
+
+      <div class="form-group inline-inputs">
+        <div>
+          <label for="battleDate">Date:</label>
+          <input type="date" id="battleDate">
+        </div>
+        <div>
+          <label for="battleTime">Time:</label>
+          <input type="time" id="battleTime" step="1">
+        </div>
       </div>
     </div>
 
     <div class="form-group">
-      <label for="title">Title:</label>
-      <input type="text" id="title" placeholder="Enter announcement title">
+      <label for="title">Title (if not combat):</label>
+      <input type="text" id="title" placeholder="Optional title">
     </div>
 
     <div class="form-group">
-      <label for="content">Message:</label>
-      <textarea id="content" placeholder="Enter your announcement content here..."></textarea>
+      <label for="content">Content:</label>
+      <textarea id="content" rows="4" placeholder="Enter the main message"></textarea>
     </div>
 
     <button id="send-button" onclick="sendWebhook()" disabled>Send Announcement</button>
     <div id="status" class="status"></div>
+
     <div class="preview">
       <h3>Preview:</h3>
       <div id="embed-preview">Your announcement preview will appear here.</div>
@@ -173,82 +168,85 @@
 
   <script>
     const typePresets = {
-      combat: { color: '#ff4d4d', logo: 'atk.png' },
-      announcement: { color: '#5865F2', logo: 'alert.png' },
-      emergency: { color: '#faa61a', logo: 'warning.png' }
+      combat: {
+        color: '#ff4d4d',
+        logo: 'atk.png'
+      },
+      announcement: {
+        color: '#5865F2',
+        logo: 'alert.png'
+      },
+      emergency: {
+        color: '#faa61a',
+        logo: 'warning.png'
+      }
     };
 
-    function formatDiscordMarkdown(text) {
-      return text
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
+    function handlePostTypeChange() {
+      const type = document.getElementById('messageType').value;
+      const combatFields = document.getElementById('combat-fields');
+      document.getElementById('send-button').disabled = !type;
+      combatFields.style.display = type === 'combat' ? 'block' : 'none';
+      updatePreview();
     }
 
-    const messageTypeEl = document.getElementById('messageType');
-    const sendButton = document.getElementById('send-button');
-
-    messageTypeEl.addEventListener('change', () => {
-      const selected = messageTypeEl.value;
-      document.getElementById('combat-fields').style.display = selected === 'combat' ? 'block' : 'none';
-      sendButton.disabled = !selected;
-      updatePreview();
-    });
-
-    ['title', 'content', 'team1', 'team2', 'coords', 'battleDate', 'battleTime'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('input', updatePreview);
+    document.querySelectorAll('input, textarea, select').forEach(el => {
+      el.addEventListener('input', updatePreview);
+      el.addEventListener('change', updatePreview);
     });
 
     function updatePreview() {
-      const type = messageTypeEl.value;
-      if (!type) return;
-      const title = document.getElementById('title').value;
-      const content = document.getElementById('content').value;
-      const logo = typePresets[type].logo;
-      const color = typePresets[type].color;
+      const type = document.getElementById('messageType').value;
       const team1 = document.getElementById('team1')?.value || '';
       const team2 = document.getElementById('team2')?.value || '';
       const coords = document.getElementById('coords')?.value || '';
       const date = document.getElementById('battleDate')?.value || '';
       const time = document.getElementById('battleTime')?.value || '';
+      const title = document.getElementById('title')?.value || '';
+      const content = document.getElementById('content')?.value || '';
 
-      const embedTitle = (type === 'combat' && (team1 || team2)) ? `${team1} vs ${team2}` : title;
-      let embedDesc = content || '';
+      const logo = typePresets[type]?.logo || '';
+      let displayTitle = (type === 'combat' && (team1 || team2)) ? `${team1} vs ${team2}` : title;
+      let description = content;
       if (type === 'combat') {
-        if (coords) embedDesc += `\n**Coordinates:** [${coords}](https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)})`;
-        if (date && time) embedDesc += `\n**Expected Time:** ${date} ${time}`;
+        if (coords) description += `<br><strong>Coordinates:</strong> <a href="https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)}">${coords}</a>`;
+        if (date && time) description += `<br><strong>Expected Time:</strong> ${date} ${time}`;
       }
 
-      const formattedDesc = formatDiscordMarkdown(embedDesc);
-      const previewHTML = `
-        <div style="border-left: 5px solid ${color}; padding: 16px; background-color: #2f3136; border-radius: 4px;">
-          <img src="${logo}" alt="logo" style="max-height: 60px; margin-bottom: 10px;">
-          <div style="font-weight: bold; font-size: 18px; margin-bottom: 8px;">${embedTitle || 'No title'}</div>
-          <div style="white-space: pre-line;">${formattedDesc || 'No content'}</div>
-          <div style="font-size: 12px; margin-top: 12px; color: #b9bbbe;">${new Date().toLocaleString()}</div>
-        </div>`;
-      document.getElementById('embed-preview').innerHTML = previewHTML;
+      document.getElementById('embed-preview').innerHTML = (type && (displayTitle || description)) ? `
+        <img src="${logo}" alt="" style="max-height: 50px;"><br>
+        <strong>${displayTitle}</strong><br>
+        <p>${description}</p>
+      ` : 'Your announcement preview will appear here.';
     }
 
     async function sendWebhook() {
-      const type = messageTypeEl.value;
+      const type = document.getElementById('messageType').value;
       if (!type) return;
+
       const selectedWebhooks = [...document.querySelectorAll('.webhook-checkbox:checked')].map(cb => cb.value);
-      if (selectedWebhooks.length === 0) return showStatus("Please select at least one room.", "error");
-      const title = document.getElementById('title').value;
-      const content = document.getElementById('content').value;
+      if (selectedWebhooks.length === 0) {
+        showStatus("Please select at least one room.", "error");
+        return;
+      }
+
       const team1 = document.getElementById('team1')?.value || '';
       const team2 = document.getElementById('team2')?.value || '';
       const coords = document.getElementById('coords')?.value || '';
       const date = document.getElementById('battleDate')?.value || '';
       const time = document.getElementById('battleTime')?.value || '';
+      const title = document.getElementById('title')?.value || '';
+      const content = document.getElementById('content')?.value || '';
+
       const color = parseInt(typePresets[type].color.replace("#", ""), 16);
       const logo = typePresets[type].logo;
-      let description = content || '';
+
+      let description = content;
       if (type === 'combat') {
         if (coords) description += `\n**Coordinates:** [${coords}](https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)})`;
         if (date && time) description += `\n**Expected Time:** ${date} ${time}`;
       }
+
       const embed = {
         title: (type === 'combat' && (team1 || team2)) ? `${team1} vs ${team2}` : title,
         description,
@@ -256,33 +254,55 @@
         thumbnail: { url: logo },
         timestamp: new Date().toISOString()
       };
+
       try {
+        const sendButton = document.getElementById('send-button');
         sendButton.disabled = true;
         sendButton.textContent = "Sending...";
+
         for (const webhookUrl of selectedWebhooks) {
-          await fetch(webhookUrl, {
+          const response = await fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ embeds: [embed] })
+            body: JSON.stringify({
+              content: " ",
+              embeds: [embed]
+            })
           });
+
+          const result = await response.text();
+          console.log(`Webhook to ${webhookUrl} status:`, response.status);
+          console.log(`Response:`, result);
         }
+
         showStatus("Message sent successfully!", "success");
+
+        // Reset
+        ['team1','team2','coords','battleDate','battleTime','title','content'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        document.getElementById('messageType').value = '';
+        document.getElementById('combat-fields').style.display = 'none';
+        document.getElementById('send-button').disabled = true;
+        document.getElementById('embed-preview').innerHTML = 'Your announcement preview will appear here.';
+        document.querySelectorAll('.webhook-checkbox').forEach(cb => cb.checked = false);
+
       } catch (err) {
         showStatus("Failed to send: " + err.message, "error");
       } finally {
+        const sendButton = document.getElementById('send-button');
         sendButton.disabled = false;
         sendButton.textContent = "Send Announcement";
       }
     }
 
     function showStatus(message, type) {
-      const statusElement = document.getElementById('status');
-      statusElement.textContent = message;
-      statusElement.className = `status ${type}`;
-      statusElement.style.display = 'block';
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `status ${type}`;
+      status.style.display = 'block';
     }
-
-    updatePreview();
   </script>
 </body>
 </html>
