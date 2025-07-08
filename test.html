@@ -1,94 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Discord Webhook Tester</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 30px auto;
-      padding: 20px;
-      background: #f4f4f4;
-    }
-    label, textarea, input {
-      display: block;
-      margin-bottom: 10px;
-      width: 100%;
-    }
-    button {
-      padding: 10px;
-      background-color: #5865F2;
-      color: white;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .status {
-      margin-top: 15px;
-      padding: 10px;
-      border-radius: 4px;
-    }
-    .success {
-      background: #d4edda;
-      color: #155724;
-    }
-    .error {
-      background: #f8d7da;
-      color: #721c24;
-    }
-  </style>
-</head>
+<html>
+<head><meta charset="UTF-8"><title>Embed Webhook Debug</title></head>
 <body>
-
-  <h2>Discord Webhook Test</h2>
-
-  <label for="webhook">Webhook URL:</label>
-  <input type="text" id="webhook" placeholder="https://discord.com/api/webhooks/...">
-
-  <label for="message">Message:</label>
-  <textarea id="message" placeholder="Hello from Webhook!" rows="4">This is a test message.</textarea>
-
-  <button onclick="sendTest()">Send Test Message</button>
-
-  <div id="status" class="status" style="display: none;"></div>
+  <button onclick="sendWebhook()">Send Embed</button>
 
   <script>
-    async function sendTest() {
-      const url = document.getElementById('webhook').value.trim();
-      const content = document.getElementById('message').value.trim();
-      const status = document.getElementById('status');
+    async function sendWebhook() {
+      const webhooks = [
+        "https://discord.com/api/webhooks/1391917093099798690/gX04dswYaOxRApqAp8QAyvvCiaVv2LX9Yt7FZFkD0e4WIYwNjS_07C19SZ7MoyS80Y9y",
+        "https://discord.com/api/webhooks/1391917266953830420/Q3K8Ibt-3CB4XXGE-MP5xDaHVyPxuBp87RNf8pLGs7YYRmuLCaMW5Qd_Hg7O_ovgoq4l"
+      ];
 
-      if (!url || !content) {
-        status.textContent = "Webhook URL and message are required.";
-        status.className = "status error";
-        status.style.display = "block";
-        return;
-      }
+      const embed = {
+        title: "Blue vs Red",
+        description: "**Coordinates:** [E18:52:1](https://astroempires.com/map.aspx?loc=E18:52:1)\n**Expected Time:** 2025-07-07 20:00:00",
+        color: 0xff4d4d,
+        thumbnail: {
+          url: "https://cdn-icons-png.flaticon.com/512/10890/10890335.png"
+        },
+        timestamp: new Date().toISOString()
+      };
 
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content })
-        });
+      for (const url of webhooks) {
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              content: " ",
+              embeds: [embed]
+            })
+          });
 
-        const result = await response.text();
-        console.log('Response:', result);
+          const result = await response.text();
+          console.log(`Sent to: ${url}`);
+          console.log(`Status: ${response.status}`);
+          console.log(result);
 
-        if (response.ok) {
-          status.textContent = "✅ Message sent successfully!";
-          status.className = "status success";
-        } else {
-          status.textContent = `❌ Error: ${response.status} - ${result}`;
-          status.className = "status error";
+        } catch (error) {
+          console.error("Failed to send to", url, error);
         }
-
-        status.style.display = "block";
-      } catch (err) {
-        status.textContent = "❌ Error: " + err.message;
-        status.className = "status error";
-        status.style.display = "block";
       }
     }
   </script>
