@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>[New] Discord Combat Message Form</title>
+  <title>Discord Combat Message Form</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -130,7 +130,7 @@
         <input type="date" id="battleDate">
       </div>
       <div class="form-group">
-        <label>Time:</label>
+        <label>Time (24h with seconds):</label>
         <input type="time" id="battleTime" step="1">
       </div>
     </div>
@@ -159,15 +159,15 @@
     const typePresets = {
       combat: {
         color: '#ff4d4d',
-        logo: 'atk.png'
+        logo: 'https://cdn-icons-png.flaticon.com/512/10890/10890335.png'
       },
       announcement: {
         color: '#5865F2',
-        logo: 'alert.png'
+        logo: 'https://cdn-icons-png.flaticon.com/512/10464/10464718.png'
       },
       emergency: {
         color: '#faa61a',
-        logo: 'warning.png'
+        logo: 'https://cdn-icons-png.flaticon.com/512/2014/2014825.png'
       }
     };
 
@@ -209,6 +209,7 @@
           <img src="${logo}" style="height: 50px; float: right;">
           <h4>${type === 'combat' ? `${team1} vs ${team2}` : title}</h4>
           <p>${desc}</p>
+          <small>${new Date().toLocaleString()}</small>
         </div>
       `;
 
@@ -246,7 +247,8 @@
         title: (type === 'combat' && (team1 || team2)) ? `${team1} vs ${team2}` : title,
         description,
         color,
-        thumbnail: { url: logo }
+        thumbnail: { url: logo },
+        timestamp: new Date().toISOString()
       };
 
       try {
