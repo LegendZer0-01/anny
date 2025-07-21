@@ -339,7 +339,7 @@
       if (type === 'combat') {
         if (playerLimit) desc += `<br><strong>Max Fleet Per Player:</strong> ${playerLimit}`;
         if (guildLimit) desc += `<br><strong>Max Fleet Per Guild:</strong> ${guildLimit}`;
-        if (coords) desc += `<br><strong>Coordinates:</strong> <a href="https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)}" target="_blank">${coords}</a>`;
+        if (coords) desc += `<br><strong>Coordinates:</strong> <a href="https://bolt.astroempires.com/map.aspx?loc=${encodeURIComponent(coords)}" target="_blank">${coords}</a>`;
         if (date && time) desc += `<br><strong>Expected Time:</strong> ${date} ${time}`;
       }
 
@@ -394,7 +394,7 @@
       if (type === 'combat') {
         if (playerLimit) description += `\n**Max Fleet Per Player:** ${playerLimit}`;
         if (guildLimit) description += `\n**Max Fleet Per Guild:** ${guildLimit}`;
-        if (coords) description += `\n**Coordinates:** [${coords}](https://astroempires.com/map.aspx?loc=${encodeURIComponent(coords)})`;
+        if (coords) description += `\n**Coordinates:** [${coords}](https://bolt.astroempires.com/map.aspx?loc=${encodeURIComponent(coords)})`;
         if (date && time) description += `\n**Expected Time:** ${date} ${time}`;
       }
 
